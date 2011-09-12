@@ -24,8 +24,8 @@ from m3.helpers import logger, urls
 from m3.ui.actions import ActionContextDeclaration, ControllerCache, ActionPack, Action
 from m3.ui.actions.context import ActionContext
 from m3.ui.ext.containers import ExtTree, ExtTreeNode
-from m3.contrib.m3_audit.manager import AuditManager
-from m3.contrib.m3_audit.models import RolesAuditModel
+from m3_audit.manager import AuditManager
+from m3_audit.models import RolesAuditModel
 
 from users import SelectUsersListWindow
 
