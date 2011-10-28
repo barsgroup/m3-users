@@ -26,14 +26,13 @@ from m3.ui.actions.context import ActionContext
 from m3.ui.ext.containers import ExtTree, ExtTreeNode
 from m3_audit.manager import AuditManager
 from m3_audit.models import RolesAuditModel
-
 from users import SelectUsersListWindow
 
 import helpers
 import models
 import metaroles
 import app_meta
-
+import api
 
 PERM_OBJECT_NOT_FOUND = u'** объект права не найден **'
 
@@ -618,12 +617,11 @@ class AssignUsers(actions.Action):
             actions.ActionContextDeclaration(name='ids', type=str, required=True),
         ]
 
-    @transaction.commit_manually
+
     def run(self, request, context):
         # получаем список пользователей, которые уже были ассоциированы с ролью
 
         try:
-            assigned_users = list(helpers.get_assigned_users_query(context.userrole_id))
 
             user_ids = context.ids.strip().split(' ')
             for strid in user_ids:
@@ -631,22 +629,14 @@ class AssignUsers(actions.Action):
                     continue
                 try:
                     user_id = int(strid)
-                    already_assigned = False
-                    for assigned_user in assigned_users:
-                        if assigned_user.user.id == user_id:
-                            already_assigned = True
-                            break
-                    if not already_assigned:
-                        assign_object = models.AssignedRole()
-                        assign_object.role = models.UserRole.objects.get(id=context.userrole_id)
-                        assign_object.user = User.objects.get(id=user_id)
-                        assign_object.save()
+                    api.set_user_role(user_id, context.userrole_id)
                 except ValueError:
+                    logger.warning(u'Не верный user id %s' % strid)
                     continue
-            transaction.commit()
+                    
         except:
             logger.exception(u'Не удалось добавить список пользователей в роль')
-            transaction.rollback()
+
             return actions.OperationResult(success=False, message=u'Не удалось добавить пользователей в роль')
         return actions.OperationResult(success=True,)
 
@@ -669,12 +659,13 @@ class DeleteAssignedUser(actions.Action):
             except models.AssignedRole.DoesNotExist:
                 return actions.OperationResult(success=False, message=u'Не удалось удалить запись. Указанный пользователь не найден.')
 
+
             try:
-                if not safe_delete(assigned_user):
-                    return actions.OperationResult.by_message(u'Не удалось удалить Запись.<br>На нее есть ссылки в базе данных.')
-            except:
-                logger.exception(u'Не удалось удалить привязку пользователя к роли')
+                api.remove_user_role(assigned_user.user, assigned_user.role)
+            except Exception as exc:
+                logger.exception(unicode(exc))
                 return actions.OperationResult.by_message(u'Не удалось удалить запись. Подробности в логах системы.')
+
 
         return actions.OperationResult()
 
