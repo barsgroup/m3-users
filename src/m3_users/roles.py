@@ -662,8 +662,8 @@ class DeleteAssignedUser(actions.Action):
 
             try:
                 api.remove_user_role(assigned_user.user, assigned_user.role)
-            except Exception as exc:
-                logger.exception(unicode(exc))
+            except Exception:
+                logger.exception()
                 return actions.OperationResult.by_message(u'Не удалось удалить запись. Подробности в логах системы.')
 
 

@@ -18,6 +18,8 @@ from m3.db.api import get_object_by_id
 
 import models
 
+SUPER_ADMIN_METAROLE = 'super-admin'
+
 def get_user_metaroles(user):
     '''
     Возвращает объекты метаролей, которые есть у пользователя.
@@ -64,7 +66,7 @@ def remove_user_role(user, role):
     # снимаем флаг супер-пользователя, если он стоял, и у пользователя не осталось
     # ролей, наследовынных от метароли Супер-Администратора
     if user.is_superuser\
-        and not models.UserRole.objects.filter(metarole='super-admin',
+        and not models.UserRole.objects.filter(metarole=SUPER_ADMIN_METAROLE,
                                            assigned_users__user=user).exists():
             user.is_superuser = False
             user.save()
@@ -88,7 +90,7 @@ def set_user_role(user, role):
         assigned_role.role = role
         assigned_role.save()
 
-        if role.metarole == 'super-admin' and not user.is_superuser:
+        if role.metarole == SUPER_ADMIN_METAROLE and not user.is_superuser:
             user.is_superuser = True
             user.save()
 
