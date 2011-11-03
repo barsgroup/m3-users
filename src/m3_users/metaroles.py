@@ -29,7 +29,17 @@ class UserMetarole(object):
         self.code = metarole_code
         self.name = metarole_name
         self.included_metaroles = TypedList(type=UserMetarole)
+
+
+    @property
+    def id(self):
+        """
+        геттер необходим для лучшей маскировки объекта Метароли под объект обычной модели
+        (критично для некоторых операций Dict_Pack'ов)
+        """
+        return self.code
     
+
     def get_owner_metaroles(self):
         '''
         Возвращает список метаролей в которые входит наша метароль. Проще говоря список родителей,
@@ -151,13 +161,12 @@ class Metaroles_DictPack(BaseDictionaryActions):
     def get_rows(self, offset, limit, filter, user_sort=''):
         data = []
         for role in metarole_manager.get_registered_metaroles():
-            proxy = {'id': role.code, 'name': role.name}
             if filter:
                 # Регистронезависимое вхождение строки
                 if role.name.upper().find(filter.upper()) != -1:
-                    data.append(proxy)
+                    data.append(role)
             else:
-                data.append(proxy)
+                data.append(role)
         return {'rows': data}
     
     def get_row(self, id):

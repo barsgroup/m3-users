@@ -18,6 +18,8 @@ from m3.db.api import get_object_by_id
 
 import models
 
+SUPER_ADMIN_METAROLE = 'super-admin'
+
 def get_user_metaroles(user):
     '''
     Возвращает объекты метаролей, которые есть у пользователя.
@@ -27,7 +29,7 @@ def get_user_metaroles(user):
         metarole = get_metarole(metarole_code)
         if metarole:
             result.append(metarole)
-    
+
     return result
 
 def user_has_metarole(user, metarole):
@@ -51,12 +53,26 @@ def get_user_roles(user):
     return models.UserRole.objects.filter(assigned_users__user=user).order_by('name')
 
 
+@transaction.commit_on_success
 def remove_user_role(user, role):
     '''
     Снимает роль у пользователя
     '''
     models.AssignedRole.objects.filter(user=user, role=role).delete()
-    
+
+    if isinstance(user, int):
+        user = auth_models.User.objects.get(id=user)
+
+    # снимаем флаг супер-пользователя, если он стоял, и у пользователя не осталось
+    # ролей, наследовынных от метароли Супер-Администратора
+    if user.is_superuser\
+        and not models.UserRole.objects.filter(metarole=SUPER_ADMIN_METAROLE,
+                                           assigned_users__user=user).exists():
+            user.is_superuser = False
+            user.save()
+
+
+@transaction.commit_on_success
 def set_user_role(user, role):
     '''
     Устанавливает роль для пользователя
@@ -65,21 +81,35 @@ def set_user_role(user, role):
         
         if isinstance(role, int):
             role = models.UserRole.objects.get(id=role)
-            
+
         if isinstance(user, int):
             user = auth_models.User.objects.get(id=user)
-        
+
         assigned_role = models.AssignedRole()
         assigned_role.user = user
         assigned_role.role = role
         assigned_role.save()
-        
+
+        if role.metarole == SUPER_ADMIN_METAROLE and not user.is_superuser:
+            user.is_superuser = True
+            user.save()
+
+
+            
+@transaction.commit_on_success
 def clear_user_roles(user):
     '''
     Убирает все роли у пользователя
     '''
     models.AssignedRole.objects.filter(user=user).delete()
     
+    if isinstance(user, int):
+        user = auth_models.User.objects.get(id=user)
+
+    if user.is_superuser:
+        user.is_superuser = False
+        user.save()
+        
     
 def get_user_by_id(user_id):
     '''
