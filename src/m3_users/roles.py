@@ -27,6 +27,7 @@ from m3.ui.ext.containers import ExtTree, ExtTreeNode
 from m3_audit.manager import AuditManager
 from m3_audit.models import RolesAuditModel
 from users import SelectUsersListWindow
+from m3.ui.ext.fields.complex import ExtSearchField
 
 import helpers
 import models
@@ -192,11 +193,17 @@ class RoleAssignedUsersDataAction(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True)
+            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True),
+            actions.ActionContextDeclaration(name='filter', type=str, requeired=False),
+            actions.ActionContextDeclaration(name='start', type=int, required=True),
+            actions.ActionContextDeclaration(name='limit', type=int, required=True)
         ]
 
     def run(self, request, context):
-        return actions.ExtGridDataQueryResult(helpers.get_assigned_users_query(context.userrole_id))
+        filter = None
+        if hasattr(context, 'filter'):
+            filter = context.filter
+        return actions.ExtGridDataQueryResult(helpers.get_assigned_users_query(context.userrole_id, filter), context.start, context.limit)
 
 class UsersForRoleAssignmentData(actions.Action):
     '''
@@ -790,6 +797,12 @@ class AssignedUsersWindow(windows.ExtWindow):
         self.grid_users.add_column(header=u'Имя', data_index='user_first_name', width=200)
         self.grid_users.add_column(header=u'E-mail', data_index='user_email', width=200)
         self.grid_users.action_data = RoleAssignedUsersDataAction
+
+        search_text_grid = ExtSearchField(empty_text = u'Поиск', component_for_search = self.grid_users)
+        self.grid_users.top_bar.add_fill()
+        self.grid_users.top_bar.items.append(search_text_grid)
+
+        self.grid_users.allow_paging = True
 
         self.grid_users.action_new = SelectUsersToAssignWindowAction
 
