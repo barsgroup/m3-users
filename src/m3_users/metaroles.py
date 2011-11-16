@@ -14,6 +14,7 @@ import threading
 
 from django.conf import settings
 from django.utils.importlib import import_module
+from m3.core.json import property_json_encode
 
 from m3.helpers import logger
 from m3.ui.actions.packs import BaseDictionaryActions
@@ -31,7 +32,7 @@ class UserMetarole(object):
         self.included_metaroles = TypedList(type=UserMetarole)
 
 
-    @property
+    @property_json_encode
     def id(self):
         """
         геттер необходим для лучшей маскировки объекта Метароли под объект обычной модели
