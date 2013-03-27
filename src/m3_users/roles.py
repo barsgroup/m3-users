@@ -18,17 +18,23 @@ from m3.ui.ext import panels
 from m3.ui.ext import fields
 from m3.ui.ext import controls
 from m3.ui.ext.panels.grids import ExtObjectGrid
-from m3.helpers import ui as ui_helpers
-from m3.db import safe_delete, queryset_limiter
-from m3.helpers import logger, urls
 from m3.ui.actions import ActionContextDeclaration, ControllerCache, ActionPack, Action
 from m3.ui.actions.context import ActionContext
 from m3.ui.ext.containers import ExtTree, ExtTreeNode
-from m3_audit.manager import AuditManager
-from m3_audit.models import RolesAuditModel
-from users import SelectUsersListWindow
 from m3.ui.ext.fields.complex import ExtSearchField
 
+from m3.helpers import ui as ui_helpers
+from m3.db import safe_delete, queryset_limiter
+from m3.helpers import logger, urls
+
+try:
+    from m3_audit.manager import AuditManager
+    from m3_audit.models import RolesAuditModel
+    _M3_AUDIT_INSTALLED = True
+except ImportError:
+    _M3_AUDIT_INSTALLED = False
+
+from users import SelectUsersListWindow
 import helpers
 import models
 import metaroles
@@ -160,7 +166,7 @@ class AddRolePermission(actions.Action):
 #        return [
 #            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True)
 #        ]
-#        
+#
     def run(self, request, context):
         #role = models.UserRole.objects.get(id=context.userrole_id)
         window = SelectPermissionWindow()
@@ -269,7 +275,7 @@ def get_all_permission_tree():
     Общий подход к формированию дерева прав доступа (алгоритм):
     собирается список прав доступа исходя из наборов действий, действий, субправ наборов действий, субправ действий
     у каждого элемента списка прав должен быть путь в дереве (пока строкой), наименование права доступа, полное наименование права (для грида прав)
-    путь в дереве строится из значения path элемента, а если он отсутствует, то по иерархии этого элемента в фактической структуре действий и набора действий 
+    путь в дереве строится из значения path элемента, а если он отсутствует, то по иерархии этого элемента в фактической структуре действий и набора действий
     '''
     class PermProxy(ExtTreeNode):
         def __init__(self, id, parent=None, name='', url='', can_select=True, fullname=None, path = ''):
@@ -305,7 +311,7 @@ def get_all_permission_tree():
                     res.append(node)
                 parent_node = node
         return parent_node
-    
+
     def get_action_sub_perm_path(action, sub_perm_code):
         result = ''
         if action:
@@ -322,7 +328,7 @@ def get_all_permission_tree():
                     result = get_action_perm_path(action)
                     result = result + ('\\' if result != '' else '') + action.get_verbose_name()
         return result
-    
+
     def get_action_perm_path(action):
         result = ''
         if action:
@@ -333,7 +339,7 @@ def get_all_permission_tree():
                 result = get_actionpack_perm_path(action.parent)
                 result = result + ('\\' if result != '' else '') + action.parent.get_verbose_name()
         return result
-    
+
     def get_actionpack_sub_perm_path(actionpack, sub_perm_code):
         result = ''
         if actionpack:
@@ -350,7 +356,7 @@ def get_all_permission_tree():
                     result = get_actionpack_perm_path(actionpack)
                     result = result + ('\\' if result != '' else '') + actionpack.get_verbose_name()
         return result
-    
+
     def get_actionpack_perm_path(actionpack):
         result = ''
         if actionpack:
@@ -362,7 +368,7 @@ def get_all_permission_tree():
                     result = get_actionpack_perm_path(actionpack.parent)
                     result = result + ('\\' if result != '' else '') + actionpack.parent.get_verbose_name()
         return result
-    
+
     def add_nodes(parent_node, action_set, res, ctrl):
         # если передали Набор действий, то у него надо взять Действия и подчиненные Наборы
         if isinstance(action_set, ActionPack):
@@ -370,7 +376,7 @@ def get_all_permission_tree():
             #path = action_set.path if hasattr(action_set, 'path') and action_set.path else ctrl.verbose_name if ctrl.verbose_name else ctrl.__class__.__name__
             #start_count = len(res)
             #parent_node = add_path(path, res)
-            # получим отображаемое имя набора 
+            # получим отображаемое имя набора
             #name = action_set.get_verbose_name()
             #item = PermProxy(len(res) + 1, parent_node, name, action_set.absolute_url(), False)
             #res.append(item)
@@ -428,7 +434,7 @@ def get_all_permission_tree():
                     # если длина пути больше 1, значит указали путь - выделим путь и имя
                     if len(items) > 1:
                         name = items[-1]
-                        pack_name = items[-2] 
+                        pack_name = items[-2]
                     else:
                         name = value
                     fullname = '%s - %s' % (pack_name, name)
@@ -445,7 +451,7 @@ def get_all_permission_tree():
         # пройдемся по верхним наборам действий
         for pack in ctrl.get_top_actions():
             add_nodes(None, pack, res, ctrl)
-    
+
     # выстроим иерархию
     for item in res:
         if not item.parent:
@@ -487,11 +493,11 @@ class SaveRoleAction(actions.Action):
             else:
                 user_role = models.UserRole()
             context.user_role = user_role
-            
+
             # аудит
             existing_permissions = self._get_existing_permissions(request, context)
             supplied_permissions = self._get_supplied_permissions(request, context)
-            # end            
+            # end
 
             window = RolesEditWindow()
             window.form.bind_to_request(request)
@@ -509,31 +515,36 @@ class SaveRoleAction(actions.Action):
                 else:
                     perm_obj = models.RolePermission(role=user_role, permission_code=perm['permission_code'])
                 perm_obj.disabled = perm['disabled']
-                # self._handle_record_auditing(request, context, perm_obj, user_role) # аудит до сохранения,- TODO?                
-                perm_obj.save()                
-                
+                # self._handle_record_auditing(request, context, perm_obj, user_role) # аудит до сохранения,- TODO?
+                perm_obj.save()
+
                 ids.append(perm_obj.id)
             # удалим те, которые не обновились
             models.RolePermission.objects.filter(role=user_role).exclude(id__in=ids).delete()
 
-            # аудит            
-            for i in self._added_permissions(existing_permissions, supplied_permissions):
-                AuditManager().write('roles', user=request.user,
-                                        role=user_role,
-                                        permission_or_code=i.permission_code,
-                                        type=RolesAuditModel.PERMISSION_ADDITION)
-            for i in self._deleted_permissions(existing_permissions, supplied_permissions):
-                AuditManager().write('roles', user=request.user,
-                                        role=user_role,
-                                        permission_or_code=i.permission_code,
-                                        type=RolesAuditModel.PERMISSION_REMOVAL)
+            # аудит
+            if _M3_AUDIT_INSTALLED:
+                for i in self._added_permissions(
+                        existing_permissions, supplied_permissions):
+                    AuditManager().write(
+                        'roles', user=request.user,
+                        role=user_role,
+                        permission_or_code=i.permission_code,
+                        type=RolesAuditModel.PERMISSION_ADDITION)
+                for i in self._deleted_permissions(
+                        existing_permissions, supplied_permissions):
+                    AuditManager().write(
+                        'roles', user=request.user,
+                        role=user_role,
+                        permission_or_code=i.permission_code,
+                        type=RolesAuditModel.PERMISSION_REMOVAL)
             # end
         except:
             logger.exception(u'Не удалось сохранить роль пользователя')
             return actions.OperationResult(success=False, message=u'Не удалось сохранить роль пользователя.')
 
-        return actions.OperationResult(success=True)  
-    
+        return actions.OperationResult(success=True)
+
     def _get_role(self, request, context):
         if(context.userrole_id > 0):
             try:
@@ -544,10 +555,10 @@ class SaveRoleAction(actions.Action):
             user_role = models.UserRole()
         # только два скоупа в питоне ))
         return user_role
-    
+
     def _get_existing_permissions(self, request=None, context=None):
         return models.RolePermission.objects.filter(role=context.user_role)
-    
+
     # Есть копипаста
     def _get_supplied_permissions(self, request, context):
         result = []
@@ -558,11 +569,11 @@ class SaveRoleAction(actions.Action):
                 perm_obj = q[0]
             else:
                 perm_obj = models.RolePermission(role=context.user_role, permission_code=perm['permission_code'])
-            perm_obj.disabled = perm['disabled']                
-            
+            perm_obj.disabled = perm['disabled']
+
             result.append(perm_obj)
         return result
-        
+
     def _added_permissions(self, existing, supplied):
         result = list(supplied)
         for e in existing:
@@ -570,7 +581,7 @@ class SaveRoleAction(actions.Action):
                 if e.id == s.id:
                     result.remove(s)
         return result
-                                            
+
     def _deleted_permissions(self, existing, supplied):
         result = list(existing)
         for e in existing:
@@ -578,8 +589,8 @@ class SaveRoleAction(actions.Action):
                 if e.id == s.id:
                     result.remove(e)
         return result
-        
-        
+
+
 
 class DeleteRoleAction(actions.Action):
 
@@ -638,7 +649,7 @@ class AssignUsers(actions.Action):
                 except ValueError:
                     logger.warning(u'Не верный user id %s' % strid)
                     continue
-                    
+
         except:
             logger.exception(u'Не удалось добавить список пользователей в роль')
 
@@ -675,7 +686,7 @@ class DeleteAssignedUser(actions.Action):
         return actions.OperationResult()
 
 #===============================================================================
-# UI 
+# UI
 #===============================================================================
 
 class RolesListWindow(windows.ExtWindow):
@@ -846,7 +857,7 @@ class SelectPermissionWindow(windows.ExtEditWindow):
 class Roles_DictPack(BaseDictionaryModelActions):
     '''
     Справочник "Роли пользователей".
-    
+
     Используется для выбора значений.
     '''
     url = '/roles-dict'
