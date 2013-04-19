@@ -6,7 +6,7 @@ with open('src/requires.txt', 'r') as f:
     requires.extend(f.readlines())
 
 setup(name='m3_users',
-      version='1.1.1',
+      version='1.1.2',
       url='https://src.bars-open.ru/py/m3/m3_contrib/m3_users',
       license='Apache License, Version 2.0',
       author='BARS Group',

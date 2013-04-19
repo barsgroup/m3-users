@@ -265,9 +265,10 @@ class GetRolePermissionAction(actions.Action):
                 else:
                     pack_name = ''
                 perm.verbose_name = '%s - %s' % (pack_name, act.verbose_name if act.verbose_name else act.__class__.__name__)
-                if sub_code and sub_code in act.sub_permissions.keys():
+                if sub_code and sub_code in act.sub_permissions:
                     perm.verbose_name = '%s - %s' % (pack_name, act.sub_permissions[sub_code])
             res.append(perm)
+        res.sort(key=lambda o: o.verbose_name)
         return actions.ExtGridDataQueryResult(res)
 
 def get_all_permission_tree():
