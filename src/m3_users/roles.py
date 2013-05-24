@@ -424,7 +424,7 @@ def get_all_permission_tree():
                 fullname = '%s - %s' % (pack_name, name)
                 if action_set.need_check_permission:
                     path = get_action_perm_path(action_set)
-                    url = action_set.absolute_url()
+                    url = action_set.get_permission_code()
                     if not url in res_urls.keys():
                         item = PermProxy(len(res) + 1, None, name, url, True, fullname, path)
                         res.append(item)
