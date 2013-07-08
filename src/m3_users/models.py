@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 
 from metaroles import get_metarole
 
+
 class UserRole(models.Model):
     '''
     Модель хранения роли пользователя в прикладной подсистеме

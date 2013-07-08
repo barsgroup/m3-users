@@ -6,7 +6,6 @@ Created on 11.06.2010
 '''
 from django.conf import settings
 from django.db.models import Q
-
 from django.contrib.auth.models import User
 
 from models import UserRole, AssignedRole

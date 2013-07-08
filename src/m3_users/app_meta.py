@@ -7,8 +7,8 @@ Created on 10.06.2010
 
 from django.conf import urls
 
-from m3.ui.actions import ActionController
-from m3.helpers.users import authenticated_user_required
+from m3 import authenticated_user_required
+from m3.actions import ActionController
 
 from roles import RolesActions, Roles_DictPack
 from users import UsersActions

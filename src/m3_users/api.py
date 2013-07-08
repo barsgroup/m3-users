@@ -8,15 +8,14 @@ Created on 09.12.2010
 '''
 
 from django.contrib.auth import models as auth_models
-
 from django.db import transaction
+
+from m3_legacy import get_object_by_id
 
 from helpers import get_assigned_metaroles_query
 from metaroles import get_metarole
-
-from m3.db.api import get_object_by_id
-
 import models
+
 
 SUPER_ADMIN_METAROLE = 'super-admin'
 

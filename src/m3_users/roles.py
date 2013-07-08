@@ -4,28 +4,29 @@ Created on 11.06.2010
 
 @author: akvarats
 '''
-from django.db.models.query import QuerySet
 import inspect
-from copy import copy
 
-from django.db import transaction
-from django.contrib.auth.models import User
-
-from m3.ui import actions
-from m3.ui.actions.packs import BaseDictionaryModelActions
-from m3.ui.ext import windows
-from m3.ui.ext import panels
-from m3.ui.ext import fields
-from m3.ui.ext import controls
-from m3.ui.ext.panels.grids import ExtObjectGrid
-from m3.ui.actions import ActionContextDeclaration, ControllerCache, ActionPack, Action
-from m3.ui.actions.context import ActionContext
-from m3.ui.ext.containers import ExtTree, ExtTreeNode
-from m3.ui.ext.fields.complex import ExtSearchField
-
-from m3.helpers import ui as ui_helpers
 from m3.db import safe_delete, queryset_limiter
-from m3.helpers import logger, urls
+from m3.actions import (urls,
+                        Action,
+                        ActionPack,
+                        ACD,
+                        ControllerCache,
+                        ActionContext,)
+from m3.actions.results import PreJsonResult, JsonResult, OperationResult
+from m3.actions.packs import BaseDictionaryModelActions
+
+from m3_ext.ui import windows
+from m3_ext.ui import panels
+from m3_ext.ui import fields
+from m3_ext.ui import controls
+from m3_ext.ui import helpers as ui_helpers
+from m3_ext.ui.fields.complex import ExtSearchField
+from m3_ext.ui.panels.grids import ExtObjectGrid
+from m3_ext.ui.containers import ExtTree, ExtTreeNode
+from m3_ext.ui.results import ExtUIScriptResult, ExtGridDataQueryResult
+
+from m3_legacy import logger
 
 try:
     from m3_audit.manager import AuditManager
@@ -43,7 +44,7 @@ import api
 
 PERM_OBJECT_NOT_FOUND = u'** объект права не найден **'
 
-class RolesActions(actions.ActionPack):
+class RolesActions(ActionPack):
     '''
     Пакет действий для подсистемы прав пользователей
     '''
@@ -77,16 +78,16 @@ class RolesActions(actions.ActionPack):
 #  - EditRoleWindowAction -- получение окна редактирования роли
 #===============================================================================
 
-class RolesWindowAction(actions.Action):
+class RolesWindowAction(Action):
     '''
     Действие на получение окна показа списка пользовательских ролей
     '''
     url = '/roles-window'
 
     def run(self, request, context):
-        return actions.ExtUIScriptResult(data=RolesListWindow())
+        return ExtUIScriptResult(data=RolesListWindow())
 
-class EditRoleWindowAction(actions.Action):
+class EditRoleWindowAction(Action):
     '''
     Получение окна редактирования роли пользователя
     '''
@@ -95,7 +96,7 @@ class EditRoleWindowAction(actions.Action):
     verbose_name = u'Добавление и редактирование роли'
     def context_declaration(self):
         return [
-            ActionContextDeclaration(name=u'userrole_id', type=int, required=True, default=0)
+            ACD(name=u'userrole_id', type=int, required=True, default=0)
         ]
 
     def run(self, request, context):
@@ -106,16 +107,16 @@ class EditRoleWindowAction(actions.Action):
             try:
                 user_role = models.UserRole.objects.get(pk=context.userrole_id)
             except models.UserRole.DoesNotExist:
-                return actions.OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+                return OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
         else:
             user_role = models.UserRole()
 
         window = RolesEditWindow(new_role)
         window.form.from_object(user_role)
 
-        return actions.ExtUIScriptResult(data=window)
+        return ExtUIScriptResult(data=window)
 
-class ShowAssignedUsersAction(actions.Action):
+class ShowAssignedUsersAction(Action):
     '''
     Получение окна со списком связанных пользователей
     '''
@@ -123,7 +124,7 @@ class ShowAssignedUsersAction(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True)
+            ACD(name='userrole_id', type=int, required=True),
         ]
 
     def run(self, request, context):
@@ -131,9 +132,9 @@ class ShowAssignedUsersAction(actions.Action):
         role = models.UserRole.objects.get(id=context.userrole_id)
         window.field_role_name.value = role.name
 
-        return actions.ExtUIScriptResult(window)
+        return ExtUIScriptResult(window)
 
-class SelectUsersToAssignWindowAction(actions.Action):
+class SelectUsersToAssignWindowAction(Action):
     '''
     Показ окна с выбором сотрудников, которые не были выбраны ранее для указанной роли
     '''
@@ -143,7 +144,7 @@ class SelectUsersToAssignWindowAction(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True)
+            ACD(name='userrole_id', type=int, required=True)
         ]
 
     def run(self, request, context):
@@ -153,9 +154,9 @@ class SelectUsersToAssignWindowAction(actions.Action):
         window.grid.title = u"Выберите пользователей для роли '%s'" % role.name
         window.action_submit = AssignUsers
 
-        return actions.ExtUIScriptResult(window)
+        return ExtUIScriptResult(window)
 
-class AddRolePermission(actions.Action):
+class AddRolePermission(Action):
     '''
     Выбор прав доступа для добавления в роль
     '''
@@ -171,27 +172,27 @@ class AddRolePermission(actions.Action):
         #role = models.UserRole.objects.get(id=context.userrole_id)
         window = SelectPermissionWindow()
         #window.title = u"Выберите права доступа для роли '%s'" % role.name
-        return actions.ExtUIScriptResult(window)
+        return ExtUIScriptResult(window)
 
 #===============================================================================
 # DATA actions
 #===============================================================================
 
-class RolesDataAction(actions.Action):
+class RolesDataAction(Action):
 
     url = '/roles-data'
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='filter', type=unicode, required=True, default=''),
-            actions.ActionContextDeclaration(name='start', type=int, required=True, default=0),
-            actions.ActionContextDeclaration(name='limit', type=int, required=True, default=25),
+            ACD(name='filter', type=unicode, required=True, default=''),
+            ACD(name='start', type=int, required=True, default=0),
+            ACD(name='limit', type=int, required=True, default=25),
         ]
 
     def run(self, request, context):
-        return actions.JsonResult(ui_helpers.paginated_json_data(helpers.get_roles_query(context.filter), context.start, context.limit))
+        return JsonResult(ui_helpers.paginated_json_data(helpers.get_roles_query(context.filter), context.start, context.limit))
 
-class RoleAssignedUsersDataAction(actions.Action):
+class RoleAssignedUsersDataAction(Action):
     '''
     Получение данных (списка) пользователей, которые прикреплены к указанной роли
     '''
@@ -199,17 +200,17 @@ class RoleAssignedUsersDataAction(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True),
-            actions.ActionContextDeclaration(name='filter', type=str, requeired=False),
-            actions.ActionContextDeclaration(name='start', type=int, required=True),
-            actions.ActionContextDeclaration(name='limit', type=int, required=True)
+            ACD(name='userrole_id', type=int, required=True),
+            ACD(name='filter', type=str, requeired=False),
+            ACD(name='start', type=int, required=True),
+            ACD(name='limit', type=int, required=True)
         ]
 
     def run(self, request, context):
         filter = getattr(context, 'filter', None)
-        return actions.ExtGridDataQueryResult(helpers.get_assigned_users_query(context.userrole_id, filter), context.start, context.limit)
+        return ExtGridDataQueryResult(helpers.get_assigned_users_query(context.userrole_id, filter), context.start, context.limit)
 
-class UsersForRoleAssignmentData(actions.Action):
+class UsersForRoleAssignmentData(Action):
     '''
     Получение списка пользователей, которые могут быть назначены на роль
     '''
@@ -218,19 +219,19 @@ class UsersForRoleAssignmentData(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True),
-            actions.ActionContextDeclaration(name='filter', type=str, required=True, default=u''),
-            actions.ActionContextDeclaration(name='start', type=int, required=True),
-            actions.ActionContextDeclaration(name='limit', type=int, required=True)
+            ACD(name='userrole_id', type=int, required=True),
+            ACD(name='filter', type=str, required=True, default=u''),
+            ACD(name='start', type=int, required=True),
+            ACD(name='limit', type=int, required=True)
         ]
 
     def run(self, request, context):
         users = helpers.get_unassigned_users(context.userrole_id, context.filter)
         rows, total = queryset_limiter(users, context.start, context.limit)
-        return actions.PreJsonResult({'rows': rows, 'total': total})
+        return PreJsonResult({'rows': rows, 'total': total})
         #return actions.ExtGridDataQueryResult(helpers.get_unassigned_users(context.userrole_id, context.filter))
 
-class GetRolePermissionAction(actions.Action):
+class GetRolePermissionAction(Action):
     '''
     Получение списка прав доступа для указанной роли
     '''
@@ -238,7 +239,7 @@ class GetRolePermissionAction(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True)
+            ACD(name='userrole_id', type=int, required=True),
         ]
 
     def run(self, request, context):
@@ -269,7 +270,7 @@ class GetRolePermissionAction(actions.Action):
                     perm.verbose_name = '%s - %s' % (pack_name, act.sub_permissions[sub_code])
             res.append(perm)
         res.sort(key=lambda o: o.verbose_name)
-        return actions.ExtGridDataQueryResult(res)
+        return ExtGridDataQueryResult(res)
 
 def get_all_permission_tree():
     '''
@@ -471,7 +472,7 @@ def get_all_permission_tree():
 # OPERATIONS
 #===============================================================================
 
-class SaveRoleAction(actions.Action):
+class SaveRoleAction(Action):
     '''
     Сохранение роли пользователя
     '''
@@ -480,8 +481,8 @@ class SaveRoleAction(actions.Action):
 
     def context_declaration(self):
         return [
-            ActionContextDeclaration(name=u'userrole_id', type=int, required=True, default=0),
-            ActionContextDeclaration(name=u'perms', type=object, required=True, default=[])
+            ACD(name=u'userrole_id', type=int, required=True, default=0),
+            ACD(name=u'perms', type=object, required=True, default=[])
         ]
 
     def run(self, request, context):
@@ -490,7 +491,9 @@ class SaveRoleAction(actions.Action):
                 try:
                     user_role = models.UserRole.objects.get(id=context.userrole_id)
                 except models.UserRole.DoesNotExist:
-                    return actions.OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+                    return OperationResult(
+                        success=False,
+                        message=u'Роль с указанным идентификатором не найдена')
             else:
                 user_role = models.UserRole()
             context.user_role = user_role
@@ -542,16 +545,16 @@ class SaveRoleAction(actions.Action):
             # end
         except:
             logger.exception(u'Не удалось сохранить роль пользователя')
-            return actions.OperationResult(success=False, message=u'Не удалось сохранить роль пользователя.')
+            return OperationResult(success=False, message=u'Не удалось сохранить роль пользователя.')
 
-        return actions.OperationResult(success=True)
+        return OperationResult(success=True)
 
     def _get_role(self, request, context):
         if(context.userrole_id > 0):
             try:
                 user_role = models.UserRole.objects.get(id=context.userrole_id)
             except models.UserRole.DoesNotExist:
-                return actions.OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+                return OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
         else:
             user_role = models.UserRole()
         # только два скоупа в питоне ))
@@ -593,36 +596,36 @@ class SaveRoleAction(actions.Action):
 
 
 
-class DeleteRoleAction(actions.Action):
+class DeleteRoleAction(Action):
 
     url = '/delete-role'
     need_check_permission = True
     verbose_name = u'Удаление роли'
     def context_declaration(self):
         return [
-            ActionContextDeclaration(name=u'userrole_id', type=int, required=True)
+            ACD(name=u'userrole_id', type=int, required=True)
         ]
 
     def run(self, request, context):
         try:
             user_role = models.UserRole.objects.get(id=context.userrole_id)
         except models.UserRole.DoesNotExist:
-            return actions.OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+            return OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
 
         if len(helpers.get_assigned_users_query(user_role)) > 0:
-            return actions.OperationResult(success=False, message=u'К данной роли привязаны пользователи. Удалять такую роль нельзя')
+            return OperationResult(success=False, message=u'К данной роли привязаны пользователи. Удалять такую роль нельзя')
 
         try:
             if not safe_delete(user_role):
                 # FIXME: return в try - это зло
-                return actions.OperationResult(success=False, message=u'Не удалось удалить роль пользователя.<br>На эту запись есть ссылки в базе данных.')
+                return OperationResult(success=False, message=u'Не удалось удалить роль пользователя.<br>На эту запись есть ссылки в базе данных.')
         except:
             logger.exception(u'Не удалось удалить роль пользователя')
-            return actions.OperationResult(success=False, message=u'Не удалось удалить роль пользователя.<br>Подробности в логах системы.')
+            return OperationResult(success=False, message=u'Не удалось удалить роль пользователя.<br>Подробности в логах системы.')
 
-        return actions.OperationResult(success=True)
+        return OperationResult(success=True)
 
-class AssignUsers(actions.Action):
+class AssignUsers(Action):
     '''
     Сопоставление пользователей роли
     '''
@@ -630,8 +633,8 @@ class AssignUsers(actions.Action):
 
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='userrole_id', type=int, required=True),
-            actions.ActionContextDeclaration(name='ids', type=str, required=True),
+            ACD(name='userrole_id', type=int, required=True),
+            ACD(name='ids', type=str, required=True),
         ]
 
 
@@ -654,10 +657,10 @@ class AssignUsers(actions.Action):
         except:
             logger.exception(u'Не удалось добавить список пользователей в роль')
 
-            return actions.OperationResult(success=False, message=u'Не удалось добавить пользователей в роль')
-        return actions.OperationResult(success=True,)
+            return OperationResult(success=False, message=u'Не удалось добавить пользователей в роль')
+        return OperationResult(success=True,)
 
-class DeleteAssignedUser(actions.Action):
+class DeleteAssignedUser(Action):
     '''
     Удаление связанного с ролью пользователя
     '''
@@ -666,7 +669,7 @@ class DeleteAssignedUser(actions.Action):
     verbose_name = u'Удаление пользователя роли'
     def context_declaration(self):
         return [
-            actions.ACD(name='assigneduser_id', type=ActionContext.ValuesList(), required=True)
+            ACD(name='assigneduser_id', type=ActionContext.ValuesList(), required=True)
         ]
 
     def run(self, request, context):
@@ -674,17 +677,17 @@ class DeleteAssignedUser(actions.Action):
             try:
                 assigned_user = models.AssignedRole.objects.get(id=assigneduser_id)
             except models.AssignedRole.DoesNotExist:
-                return actions.OperationResult(success=False, message=u'Не удалось удалить запись. Указанный пользователь не найден.')
+                return OperationResult(success=False, message=u'Не удалось удалить запись. Указанный пользователь не найден.')
 
 
             try:
                 api.remove_user_role(assigned_user.user, assigned_user.role)
             except Exception:
                 logger.exception()
-                return actions.OperationResult.by_message(u'Не удалось удалить запись. Подробности в логах системы.')
+                return OperationResult.by_message(u'Не удалось удалить запись. Подробности в логах системы.')
 
 
-        return actions.OperationResult()
+        return OperationResult()
 
 #===============================================================================
 # UI
