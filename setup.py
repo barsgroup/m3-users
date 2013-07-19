@@ -6,7 +6,7 @@ with open('src/requires.txt', 'r') as f:
     requires.extend(f.readlines())
 
 setup(name='m3-users',
-      version='1.1.3',
+      version='2.0.0',
       url='https://src.bars-open.ru/py/m3/m3_contrib/m3_users',
       license='Apache License, Version 2.0',
       author='BARS Group',
@@ -17,6 +17,7 @@ setup(name='m3-users',
       install_requires=requires,
       include_package_data=True,
       classifiers=[
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Environment :: Web Environment',
         'Natural Language :: Russian',
