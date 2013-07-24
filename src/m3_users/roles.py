@@ -755,6 +755,8 @@ class RolesEditWindow(windows.ExtEditWindow):
         field_name = fields.ExtStringField(name='name', label=u'Наименование', allow_blank=False, anchor='100%')
         field_metarole = fields.ExtDictSelectField(name='metarole', label=u'Метароль', anchor='100%', hide_trigger=False)
         field_metarole.configure_by_dictpack(metaroles.Metaroles_DictPack, app_meta.users_controller)
+        field_metarole.editable = False
+        field_metarole.hide_dict_select_trigger = True
 
         self.form.items.extend([field_name, field_metarole])
 

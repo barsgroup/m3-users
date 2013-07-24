@@ -15,4 +15,4 @@ relre:^src/env/
 syntax: glob
 
 dist/*
-*.egg-info/*
+src/m3_users.egg-info/*
