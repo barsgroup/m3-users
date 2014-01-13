@@ -14,11 +14,11 @@ import threading
 
 from django.conf import settings
 from django.utils.importlib import import_module
-from m3.core.json import property_json_encode
 
-from m3.helpers import logger
-from m3.ui.actions.packs import BaseDictionaryActions
-from m3.helpers.datastructures import TypedList
+from m3 import property_json_encode
+from m3.actions.packs import BaseDictionaryActions
+
+from m3_legacy import logger
 
 
 class UserMetarole(object):
@@ -29,7 +29,7 @@ class UserMetarole(object):
         # код метароли пользователя
         self.code = metarole_code
         self.name = metarole_name
-        self.included_metaroles = TypedList(type=UserMetarole)
+        self.included_metaroles = []
 
 
     @property_json_encode

@@ -4,18 +4,18 @@ Created on 11.06.2010
 
 @author: akvarats
 '''
+from m3.actions import Action, ActionPack, ACD
+from m3.actions.results import JsonResult
 
-from m3.ui import actions
-from m3.helpers import ui as ui_helpers
+from m3_ext.ui import windows
+from m3_ext.ui import panels
+from m3_ext.ui import controls
+from m3_ext.ui.helpers import paginated_json_data
 
-from m3.ui.ext import windows
-from m3.ui.ext import panels
-from m3.ui.ext import fields
-from m3.ui.ext import controls
+from helpers import get_users_query
 
-import helpers
 
-class UsersActions(actions.ActionPack):
+class UsersActions(ActionPack):
     '''
     Пакет действий для пользователей системы
     '''
@@ -26,7 +26,7 @@ class UsersActions(actions.ActionPack):
             UsersDataAction(),
         ]
         
-class UsersDataAction(actions.Action):
+class UsersDataAction(Action):
     '''
     Получение списка пользователей
     '''
@@ -34,13 +34,13 @@ class UsersDataAction(actions.Action):
     
     def context_declaration(self):
         return [
-            actions.ActionContextDeclaration(name='filter', type=int, required=True, default=''),
-            actions.ActionContextDeclaration(name='start', type=int, required=True, default=0),
-            actions.ActionContextDeclaration(name='limit', type=int, required=True, default=25),
+            ACD(name='filter', type=int, required=True, default=''),
+            ACD(name='start', type=int, required=True, default=0),
+            ACD(name='limit', type=int, required=True, default=25),
         ]
     
     def run(self, request, context):
-        return actions.JsonResult(ui_helpers.paginated_json_data(helpers.get_users_query(context.filter), context.start, context.limit))
+        return JsonResult(paginated_json_data(get_users_query(context.filter), context.start, context.limit))
     
 
 class SelectUsersListWindow(windows.ExtWindow):

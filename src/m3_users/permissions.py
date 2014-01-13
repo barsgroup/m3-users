@@ -3,7 +3,8 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import get_backends
 
-from m3_users.models import AssignedRole, RolePermission
+from m3_users.models import RolePermission
+
 
 class ActionsBackend(object):
     # Поддержка прав доступа на уровне объекта (пока отключена, потом можно будет включить)
