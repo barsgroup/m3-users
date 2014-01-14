@@ -16,3 +16,4 @@ syntax: glob
 
 dist/*
 src/m3_users.egg-info/*
+docs/_build/*
