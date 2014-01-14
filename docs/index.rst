@@ -1,9 +1,9 @@
-.. eqweqwe documentation master file, created by
+.. m3_users documentation master file, created by
    sphinx-quickstart on Tue Jan 14 09:50:16 2014.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to eqweqwe's documentation!
+Welcome to m3_users's documentation!
 ===================================
 
 Contents:
