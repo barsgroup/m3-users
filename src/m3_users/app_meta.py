@@ -25,11 +25,11 @@ users_controller = ActionController(url='/m3-users', name=u'Пользовате
 
 def register_actions():
     users_controller.packs.extend([
-        RolesActions,
-        UsersActions,
-        Roles_DictPack,
+        RolesActions(),
+        UsersActions(),
+        Roles_DictPack(),
         
-        Metaroles_DictPack, # метароли пользователей
+        Metaroles_DictPack(), # метароли пользователей
     ])
 
 def register_urlpatterns():
