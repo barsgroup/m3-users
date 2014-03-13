@@ -1,9 +1,13 @@
 #coding:utf-8
-'''
+u"""
+m3_users.users
+==============
+
 Created on 11.06.2010
 
 @author: akvarats
-'''
+"""
+
 from m3.actions import Action, ActionPack, ACD
 from m3.actions.results import JsonResult
 
@@ -16,20 +20,21 @@ from helpers import get_users_query
 
 
 class UsersActions(ActionPack):
-    '''
+    u"""
     Пакет действий для пользователей системы
-    '''
+    """
     
     def __init__(self):
         super(UsersActions, self).__init__()
         self.actions = [
             UsersDataAction(),
         ]
-        
+
+
 class UsersDataAction(Action):
-    '''
+    u"""
     Получение списка пользователей
-    '''
+    """
     url = '/users-data'
     
     def context_declaration(self):
@@ -44,9 +49,9 @@ class UsersDataAction(Action):
     
 
 class SelectUsersListWindow(windows.ExtWindow):
-    '''
+    u"""
     Окно со списком пользователей
-    '''
+    """
     
     def __init__(self, *args, **kwargs):
         super(SelectUsersListWindow, self).__init__(*args, **kwargs)
@@ -58,10 +63,10 @@ class SelectUsersListWindow(windows.ExtWindow):
         self.template_globals = 'm3-users/select-users-window.js'
         
         self.grid = panels.ExtObjectGrid(sm=panels.ExtGridCheckBoxSelModel())
-        self.grid.add_column(header = u'Логин', data_index = 'username', width=150)
-        self.grid.add_column(header = u'Фамилия', data_index = 'last_name', width=150)
-        self.grid.add_column(header = u'Имя', data_index = 'first_name', width=150)
-        self.grid.add_column(header = u'E-mail', data_index = 'email', width=150)
+        self.grid.add_column(header=u'Логин', data_index='username', width=150)
+        self.grid.add_column(header=u'Фамилия', data_index='last_name', width=150)
+        self.grid.add_column(header=u'Имя', data_index='first_name', width=150)
+        self.grid.add_column(header=u'E-mail', data_index='email', width=150)
         
         self.items.append(self.grid)
         

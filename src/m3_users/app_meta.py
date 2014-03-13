@@ -1,5 +1,8 @@
 #coding:utf-8
 """
+m3_users.app_meta
+=================
+
 Created on 10.06.2010
 
 @author: akvarats
@@ -24,6 +27,9 @@ users_controller = ActionController(url='/m3-users', name=u'Пользовате
 
 
 def register_actions():
+    u"""
+    Регистрация паков в контроллере
+    """
     users_controller.packs.extend([
         RolesActions,
         UsersActions,
@@ -32,23 +38,26 @@ def register_actions():
         Metaroles_DictPack, # метароли пользователей
     ])
 
+
 def register_urlpatterns():
-    """
+    u"""
     Регистрация конфигурации урлов для приложения m3.contrib.users
     """
     return urls.defaults.patterns('',
         (r'^m3-users', 'm3_users.app_meta.users_view'),
     )
 
+
 #===============================================================================
 # Регистрация метаролей для приложения
 #===============================================================================        
 def register_metaroles(manager):
-    """
+    u"""
     Функция возвращает список метаролей, которые регистрируются
     по умолчанию на уровне Платформы М3.
     
-    @param manager: объект, отвечающий за управление метаролями.
+    :param manager: менеджер, отвечающий за управление метаролями.
+    :type manager: :py:class:`m3_users.metaroles.MetaroleManager`
     """
     
     # метароль обычного пользователя системы
@@ -64,9 +73,13 @@ def register_metaroles(manager):
     
     return [manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE, manager.SUPER_ADMIN_METAROLE]
 
+
 #===============================================================================
 # Представления
 #===============================================================================
 @authenticated_user_required
 def users_view(request):
+    u"""
+    Обработчик запросов
+    """
     return users_controller.process_request(request)

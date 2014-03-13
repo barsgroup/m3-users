@@ -1,9 +1,12 @@
 #coding: utf-8
-'''
+u"""
+m3_users.models
+===============
+
 Created on 10.06.2010
 
 @author: akvarats
-'''
+"""
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -12,18 +15,21 @@ from metaroles import get_metarole
 
 
 class UserRole(models.Model):
-    '''
+    u"""
     Модель хранения роли пользователя в прикладной подсистеме
-    '''
-    # Наименование роли пользователя
+    """
+    #: строка, наименование роли пользователя
     name = models.CharField(max_length=200, db_index=True,
                             verbose_name=u'Наименование роли пользователя')
 
-    # Ассоциированная с ролью метароль (определяет интерфейс пользователя).
+    #: строка, ассоциированная с ролью метароль (определяет интерфейс пользователя).
     metarole = models.CharField(max_length=100, null=True, blank=True,
                                 verbose_name=u'Метароль')
 
     def metarole_name(self):
+        u"""
+        возвращает название метароли
+        """
         mr = get_metarole(self.metarole)
         return mr.name if mr else ''
 
@@ -39,18 +45,22 @@ class UserRole(models.Model):
 
 
 class RolePermission(models.Model):
-    '''
+    u"""
     Разрешение, сопоставленное пользовательской роли.
-    '''
+    """
 
+    #: роль, связь с :py:class:`m3_users.models.UserRole`
     role = models.ForeignKey(UserRole, verbose_name=u'Роль')
+
+    #: строка, код права доступа
     permission_code = models.CharField(max_length=200, db_index=True,
                                        verbose_name=u'Код права доступа')
 
-    # Человеческое наименование разрешения с наименованиями модулей, разделенных
-    # через запятые.
+    #: текстовое поле, человеческое наименование разрешения с наименованиями модулей,
+    #:  разделенных через запятые.
     verbose_permission_name = models.TextField(verbose_name=u'Описание права доступа')
 
+    #: булево, активность роли
     disabled = models.BooleanField(default=False, verbose_name=u'Активно')
 
     def __unicode__(self):
@@ -63,11 +73,14 @@ class RolePermission(models.Model):
 
 
 class AssignedRole(models.Model):
-    '''
+    u"""
     Роль, назначенная на пользователя
-    '''
+    """
+    #: пользователь, ссылка :py:class:`django.contrib.auth.models.User`
     user = models.ForeignKey(User, related_name='assigned_roles',
                              verbose_name=u'Пользователь')
+
+    #: роль, ссылка :py:class:`m3_users.models.UserRole`
     role = models.ForeignKey(UserRole, related_name='assigned_users',
                              verbose_name=u'Роль')
 
@@ -75,12 +88,15 @@ class AssignedRole(models.Model):
     def user_login(self):
         return self.user.username if self.user else ''
 
+    # TODO: смысл этого метода?
     def user_first_name(self):
         return self.user.first_name if self.user else ''
 
+    # TODO: смысл этого метода?
     def user_last_name(self):
         return self.user.last_name if self.user else ''
 
+    # TODO: смысл этого метода?
     def user_email(self):
         return self.user.email if self.user else ''
 
