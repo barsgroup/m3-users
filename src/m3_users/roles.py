@@ -246,10 +246,10 @@ class GetRolePermissionAction(Action):
         perms = models.RolePermission.objects.filter(role=int(context.userrole_id))
         res = []
         for perm in perms:
-            codes = perm.permission_code.split('#')
+            codes = str(perm.permission_code).split('#')
             act_code = codes[0]
             sub_code = codes[1] if len(codes) > 1 else ''
-            act = ControllerCache.get_action_by_url(act_code)
+            act = ControllerCache.find_node_by_perm(act_code)
             if not act:
                 perm.verbose_name = PERM_OBJECT_NOT_FOUND
                 # попробуем найти набор экшенов, если есть суб-код
