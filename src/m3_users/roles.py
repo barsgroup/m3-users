@@ -264,7 +264,7 @@ class GetRolePermissionAction(Action):
                 if act.parent:
                     pack_name = act.parent.get_verbose_name()
                 else:
-                    pack_name = ''
+                    pack_name = act.get_verbose_name()
                 perm.verbose_name = '%s - %s' % (pack_name, act.verbose_name if act.verbose_name else act.__class__.__name__)
                 if sub_code and sub_code in act.sub_permissions:
                     perm.verbose_name = '%s - %s' % (pack_name, act.sub_permissions[sub_code])
