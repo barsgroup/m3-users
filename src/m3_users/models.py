@@ -1,11 +1,9 @@
 #coding: utf-8
 u"""
-m3_users.models
-===============
 
-Created on 10.06.2010
+.. Created on 10.06.2010
 
-@author: akvarats
+.. @author: akvarats
 """
 
 from django.db import models

@@ -1,11 +1,11 @@
 #coding:utf-8
 u"""
-m3_users.helpers
-================
+Вспомогательне методы модуля
+============================
 
-Created on 11.06.2010
+.. Created on 11.06.2010
 
-@author: akvarats
+.. @author: akvarats
 """
 
 from django.conf import settings

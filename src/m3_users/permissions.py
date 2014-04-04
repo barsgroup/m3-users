@@ -1,7 +1,7 @@
 #coding:utf-8
 u"""
-m3_users.permissions
-====================
+Права ролей
+===========
 """
 from django.contrib.auth.models import User
 from django.contrib.auth import get_backends

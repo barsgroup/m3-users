@@ -1,13 +1,11 @@
 #coding:utf-8
 u"""
-m3_users.api
-============
-
 Внешнее API для подсистемы m3_users
+===================================
 
-Created on 09.12.2010
+.. Created on 09.12.2010
 
-@author: akvarats
+.. @author: akvarats
 """
 
 from django.contrib.auth import models as auth_models

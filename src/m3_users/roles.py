@@ -1,11 +1,11 @@
 #coding:utf-8
 u"""
-m3_users.roles
-==============
+Паки и действия для работы с ролями пользователей
+=================================================
 
-Created on 11.06.2010
+.. Created on 11.06.2010
 
-@author: akvarats
+.. @author: akvarats
 """
 import inspect
 

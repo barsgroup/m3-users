@@ -1,11 +1,11 @@
 #coding:utf-8
 u"""
-m3_users.users
-==============
+Паки и действия для работы с пользователями
+===========================================
 
-Created on 11.06.2010
+.. Created on 11.06.2010
 
-@author: akvarats
+.. @author: akvarats
 """
 
 from m3.actions import Action, ActionPack, ACD
