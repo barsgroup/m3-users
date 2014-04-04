@@ -14,6 +14,7 @@
 
 import sys
 import os
+from datetime import datetime
 
 #sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../src'))
@@ -53,8 +54,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'eqweqwe'
-copyright = u'2014, qweqweqw'
+project = u'm3_users'
+company = u'BARS Group'
+copyright = u"2009-%s, %s" % (datetime.now().year, company)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
