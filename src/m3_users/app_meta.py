@@ -36,7 +36,7 @@ def register_urlpatterns():
     """
     Регистрация конфигурации урлов для приложения m3.contrib.users
     """
-    return urls.defaults.patterns('',
+    return urls.patterns('',
         (r'^m3-users', 'm3_users.app_meta.users_view'),
     )
 
