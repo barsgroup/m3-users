@@ -23,8 +23,8 @@ from m3_ext.ui import controls
 from m3_ext.ui import helpers as ui_helpers
 from m3_ext.ui.fields.complex import ExtSearchField
 from m3_ext.ui.panels.grids import ExtObjectGrid
-from m3_ext.ui.containers import ExtTree, ExtTreeNode
-from m3_ext.ui.results import ExtUIScriptResult, ExtGridDataQueryResult
+from m3_ext.ui.containers import ExtTree
+from m3_ext.ui.results import ExtGridDataQueryResult
 
 from m3_legacy import logger
 
@@ -43,6 +43,10 @@ import app_meta
 import api
 
 PERM_OBJECT_NOT_FOUND = u'** объект права не найден **'
+
+class ExtUIScriptResult(object): pass
+class ExtTreeNode(object): pass
+
 
 class RolesActions(ActionPack):
     '''
