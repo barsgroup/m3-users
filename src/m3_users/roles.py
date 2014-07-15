@@ -48,34 +48,6 @@ class ExtUIScriptResult(object): pass
 class ExtTreeNode(object): pass
 
 
-class RolesActions(ActionPack):
-    '''
-    Пакет действий для подсистемы прав пользователей
-    '''
-
-    url = '/roles'
-
-    def __init__(self):
-        super(RolesActions, self).__init__()
-        self.actions = [
-            RolesWindowAction(),
-            EditRoleWindowAction(),
-            SaveRoleAction(),
-            DeleteRoleAction(),
-
-
-            ShowAssignedUsersAction(), # показ окна со списком пользователей, ассоциированных с ролью
-            RoleAssignedUsersDataAction(), # получение списка пользователей, ассоциированных с ролью
-            SelectUsersToAssignWindowAction(), # получение окна со списком пользователей, которые можно добавить в роль
-            UsersForRoleAssignmentData(), # получение списка пользователей, которых можно включить в заданную роль
-            RolesDataAction(),
-            AssignUsers(), # действие на добавление пользователей в роль
-            DeleteAssignedUser(), # удаление связанного с ролью пользователя
-            GetRolePermissionAction(), # получение списка прав доступа роли
-            AddRolePermission(), # выбор прав доступа для добавления в роль
-            #GetAllPermissions(), # получение дерева всех прав доступа
-        ]
-
 #===============================================================================
 # UI actions
 #  - RolesWindowAction -- получение окна со списком ролей
@@ -115,7 +87,7 @@ class EditRoleWindowAction(Action):
         else:
             user_role = models.UserRole()
 
-        window = RolesEditWindow(new_role)
+        window = self.parent.edit_window(new_role)
         window.form.from_object(user_role)
 
         return ExtUIScriptResult(data=window)
@@ -286,9 +258,11 @@ def get_all_permission_tree():
     class PermProxy(ExtTreeNode):
         def __init__(self, id, parent=None, name='', url='', can_select=True, fullname=None, path = ''):
             super(PermProxy, self).__init__()
+            self.children = []
+            self.items = {}
             self.parent = parent
             if parent:
-                parent.add_children(self)
+                parent.children.append(self)
             self.name = name
             self.path = path
             self.expanded = True
@@ -429,7 +403,7 @@ def get_all_permission_tree():
                 fullname = '%s - %s' % (pack_name, name)
                 if action_set.need_check_permission:
                     path = get_action_perm_path(action_set)
-                    url = action_set.get_permission_code()
+                    url = action_set.get_perm_code()
                     if not url in res_urls.keys():
                         item = PermProxy(len(res) + 1, None, name, url, True, fullname, path)
                         res.append(item)
@@ -463,7 +437,7 @@ def get_all_permission_tree():
         if not item.parent:
             parent_node = add_path(item.path, res)
             if parent_node:
-                parent_node.add_children(item)
+                parent_node.children.append(item)
                 item.parent = parent_node
     # преобразуем список в дерево (оставим только корневые элементы)
     nodes = []
@@ -507,7 +481,7 @@ class SaveRoleAction(Action):
             supplied_permissions = self._get_supplied_permissions(request, context)
             # end
 
-            window = RolesEditWindow()
+            window = self.parent.edit_window()
             window.form.bind_to_request(request)
             window.form.to_object(user_role)
 
@@ -860,6 +834,36 @@ class SelectPermissionWindow(windows.ExtEditWindow):
         }''' % self.tree.client_id))
         self.buttons.append(controls.ExtButton(text=u'Отмена', handler='cancelForm'))
 
+
+class RolesActions(ActionPack):
+    '''
+    Пакет действий для подсистемы прав пользователей
+    '''
+
+    url = '/roles'
+
+    edit_window = RolesEditWindow
+
+    def __init__(self):
+        super(RolesActions, self).__init__()
+        self.actions = [
+            RolesWindowAction(),
+            EditRoleWindowAction(),
+            SaveRoleAction(),
+            DeleteRoleAction(),
+
+
+            ShowAssignedUsersAction(), # показ окна со списком пользователей, ассоциированных с ролью
+            RoleAssignedUsersDataAction(), # получение списка пользователей, ассоциированных с ролью
+            SelectUsersToAssignWindowAction(), # получение окна со списком пользователей, которые можно добавить в роль
+            UsersForRoleAssignmentData(), # получение списка пользователей, которых можно включить в заданную роль
+            RolesDataAction(),
+            AssignUsers(), # действие на добавление пользователей в роль
+            DeleteAssignedUser(), # удаление связанного с ролью пользователя
+            GetRolePermissionAction(), # получение списка прав доступа роли
+            AddRolePermission(), # выбор прав доступа для добавления в роль
+            #GetAllPermissions(), # получение дерева всех прав доступа
+        ]
 
 #===============================================================================
 # Справочник "Роли пользователей"
