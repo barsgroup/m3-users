@@ -16,13 +16,8 @@ from m3.actions import (urls,
 from m3.actions.results import PreJsonResult, JsonResult, OperationResult
 from m3.actions.packs import BaseDictionaryModelActions
 
-from m3_ext.ui import windows
-from m3_ext.ui import panels
-from m3_ext.ui import fields
-from m3_ext.ui import controls
-from m3_ext.ui import helpers as ui_helpers
+from m3_ext.ui import windows, panels, fields, controls, helpers as ui_helpers
 from m3_ext.ui.fields.complex import ExtSearchField
-from m3_ext.ui.panels.grids import ExtObjectGrid
 from m3_ext.ui.containers import ExtTree, ExtTreeNode
 from m3_ext.ui.results import ExtUIScriptResult, ExtGridDataQueryResult
 
@@ -36,85 +31,163 @@ except ImportError:
     _M3_AUDIT_INSTALLED = False
 
 from users import SelectUsersListWindow
+from forms import RolesListWindow, RolesEditWindow
 import helpers
 import models
-import metaroles
-import app_meta
 import api
 
 PERM_OBJECT_NOT_FOUND = u'** объект права не найден **'
 
+
 class RolesActions(ActionPack):
-    '''
+    """
     Пакет действий для подсистемы прав пользователей
-    '''
+    """
 
     url = '/roles'
 
+    list_win = RolesListWindow
+    edit_win = RolesEditWindow
+    select_win = SelectUsersListWindow
+
     def __init__(self):
         super(RolesActions, self).__init__()
-        self.actions = [
-            RolesWindowAction(),
-            EditRoleWindowAction(),
-            SaveRoleAction(),
-            DeleteRoleAction(),
+
+        self.roles_window_action = RolesWindowAction()
+        self.edit_role_window_action = EditRoleWindowAction()
+        self.save_role_action = SaveRoleAction()
+        self.delete_role_action = DeleteRoleAction()
+        # показ окна со списком пользователей, ассоциированных с ролью
+        self.show_assigned_users_action = ShowAssignedUsersAction()
+        # получение списка пользователей, ассоциированных с ролью
+        self.role_assigned_users_data_action = RoleAssignedUsersDataAction()
+        # получение окна со списком пользователей,
+        # которые можно добавить в роль
+        self.select_users_to_assign_window = SelectUsersToAssignWindowAction()
+        # получение списка пользователей,
+        # которых можно включить в заданную роль
+        self.users_for_role_assignment_data = UsersForRoleAssignmentData()
+        self.roles_data_action = RolesDataAction()
+        # действие на добавление пользователей в роль
+        self.assign_users = AssignUsers()
+        # удаление связанного с ролью пользователя
+        self.delete_assigned_user = DeleteAssignedUser()
+        # получение списка прав доступа роли
+        self.get_role_permission_action = GetRolePermissionAction()
+        # выбор прав доступа для добавления в роль
+        self.add_role_permission = AddRolePermission()
+        self.actions.extend([
+            self.roles_window_action,
+            self.edit_role_window_action,
+            self.save_role_action,
+            self.delete_role_action,
+            self.show_assigned_users_action,
+            self.role_assigned_users_data_action,
+            self.select_users_to_assign_window,
+            self.users_for_role_assignment_data,
+            self.roles_data_action,
+            self.assign_users,
+            self.delete_assigned_user,
+            self.get_role_permission_action,
+            self.add_role_permission
+        ])
+
+    def _get_list_win_grid_urls(self):
+
+        return {
+            'url_data': self.roles_data_action.get_absolute_url(),
+            'url_new': self.edit_role_window_action.get_absolute_url(),
+            'url_edit': self.edit_role_window_action.get_absolute_url(),
+            'url_delete': self.delete_role_action.get_absolute_url(),
+            'url_show_assigned_users': (
+                self.show_assigned_users_action.get_absolute_url())
+        }
+
+    def create_list_win(self):
+
+        win = self.list_win()
+
+        params = self._get_list_win_grid_urls()
+        win.configure_grid(**params)
+
+        return win
+
+    def _get_edit_win_params(self):
+
+        return {
+            'url_data': self.get_role_permission_action.get_absolute_url(),
+            'url_new': self.add_role_permission.get_absolute_url(),
+            'form_url': self.save_role_action.get_absolute_url()
+        }
+
+    def create_edit_win(self, new_role, user_role):
+
+        win = self.edit_win(new_role=new_role)
+
+        params = self._get_edit_win_params()
+        win.configure_window(user_role, **params)
+
+        return win
+
+    def create_select_win(self, role):
+
+        win = self.select_win()
+        win.grid.url_data = (
+            self.users_for_role_assignment_data.get_absolute_url())
+        win.grid.title = u"Выберите пользователей для роли '%s'" % role.name
+        win.action_submit = self.assign_users
+
+        return win
 
 
-            ShowAssignedUsersAction(), # показ окна со списком пользователей, ассоциированных с ролью
-            RoleAssignedUsersDataAction(), # получение списка пользователей, ассоциированных с ролью
-            SelectUsersToAssignWindowAction(), # получение окна со списком пользователей, которые можно добавить в роль
-            UsersForRoleAssignmentData(), # получение списка пользователей, которых можно включить в заданную роль
-            RolesDataAction(),
-            AssignUsers(), # действие на добавление пользователей в роль
-            DeleteAssignedUser(), # удаление связанного с ролью пользователя
-            GetRolePermissionAction(), # получение списка прав доступа роли
-            AddRolePermission(), # выбор прав доступа для добавления в роль
-            #GetAllPermissions(), # получение дерева всех прав доступа
-        ]
-
-#===============================================================================
+#=============================================================================
 # UI actions
 #  - RolesWindowAction -- получение окна со списком ролей
 #  - EditRoleWindowAction -- получение окна редактирования роли
-#===============================================================================
-
+#=============================================================================
 class RolesWindowAction(Action):
-    '''
+    """
     Действие на получение окна показа списка пользовательских ролей
-    '''
+    """
     url = '/roles-window'
 
     def run(self, request, context):
-        return ExtUIScriptResult(data=RolesListWindow())
+
+        win = self.parent.create_list_win()
+
+        return ExtUIScriptResult(data=win)
+
 
 class EditRoleWindowAction(Action):
-    '''
+    """
     Получение окна редактирования роли пользователя
-    '''
+    """
+
     url = '/edit-role-window'
     need_check_permission = True
     verbose_name = u'Добавление и редактирование роли'
+
     def context_declaration(self):
-        return [
-            ACD(name=u'userrole_id', type=int, required=True, default=0)
-        ]
+        return [ACD(name=u'userrole_id', type=int, required=True, default=0)]
 
     def run(self, request, context):
 
         new_role = True
-        if(context.userrole_id > 0):
+        if context.userrole_id:
             new_role = False
             try:
                 user_role = models.UserRole.objects.get(pk=context.userrole_id)
             except models.UserRole.DoesNotExist:
-                return OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+                return OperationResult(
+                    success=False,
+                    message=u'Роль с указанным идентификатором не найдена')
         else:
             user_role = models.UserRole()
 
-        window = RolesEditWindow(new_role)
-        window.form.from_object(user_role)
+        win = self.parent.create_edit_win(new_role, user_role)
 
-        return ExtUIScriptResult(data=window)
+        return ExtUIScriptResult(data=win)
+
 
 class ShowAssignedUsersAction(Action):
     '''
@@ -149,12 +222,10 @@ class SelectUsersToAssignWindowAction(Action):
 
     def run(self, request, context):
         role = models.UserRole.objects.get(id=context.userrole_id)
-        window = SelectUsersListWindow()
-        window.grid.action_data = UsersForRoleAssignmentData
-        window.grid.title = u"Выберите пользователей для роли '%s'" % role.name
-        window.action_submit = AssignUsers
 
-        return ExtUIScriptResult(window)
+        win = self.parent.create_select_win(role)
+
+        return ExtUIScriptResult(win)
 
 class AddRolePermission(Action):
     '''
@@ -692,93 +763,6 @@ class DeleteAssignedUser(Action):
 #===============================================================================
 # UI
 #===============================================================================
-
-class RolesListWindow(windows.ExtWindow):
-
-    def __init__(self, *args, **kwargs):
-        super(RolesListWindow, self).__init__(*args, **kwargs)
-
-        self.title = u'Роли пользователей'
-        self.layout = 'fit'
-        self.width = 540
-        self.height = 500
-        self.template_globals = 'm3-users/roles-list-window.js'
-
-        #=======================================================================
-        # Настройка грида со списком ролей
-        #=======================================================================
-        self.grid = panels.ExtObjectGrid()
-        self.grid.add_column(header=u'Наименование роли', data_index='name', width=300)
-        self.grid.add_column(header=u'Метароль', data_index='metarole_name', width=240)
-        self.items.append(self.grid)
-
-        self.grid.action_data = RolesDataAction
-        self.grid.action_new = EditRoleWindowAction
-        self.grid.action_edit = EditRoleWindowAction
-        self.grid.action_delete = DeleteRoleAction
-        self.grid.top_bar.button_new.text = u'Добавить новую роль'
-        self.grid.top_bar.items.append(controls.ExtButton(text=u'Показать пользователей', icon_cls='search', handler='contextMenu_ShowAssignedUsers'))
-        self.grid.row_id_name = 'userrole_id'
-
-        # дополнительные действия формы
-        self.grid.action_show_assigned_users = ShowAssignedUsersAction
-
-        self.grid.context_menu_row.add_item(text=u'Показать пользователей', icon_cls='user-icon-16', handler='contextMenu_ShowAssignedUsers')
-        #self.grid.context_menu_row.add_item(text = u'Показать разрешения роли', icon_cls = 'edit_item', handler='contextMenu_ShowPermissions')
-        self.grid.context_menu_row.add_separator()
-
-
-        self.init_component(*args, **kwargs)
-
-class RolesEditWindow(windows.ExtEditWindow):
-    '''
-    Окно редактирования роли
-    '''
-
-    def __init__(self, new_role=False, *args, **kwargs):
-        super(RolesEditWindow, self).__init__(*args, **kwargs)
-
-        self.width = 500
-        self.height = 400
-        self.modal = True
-
-        self.new_role = new_role
-
-        self.template_globals = 'm3-users/edit-role-window.js'
-
-        self.title = u'Роль пользователя'
-        self.layout = 'border'
-        self.form = panels.ExtForm(layout='form', region='north', height=60, style={'padding': '5px'})
-        self.form.label_width = 100
-        self.form.url = SaveRoleAction.absolute_url()
-
-        field_name = fields.ExtStringField(name='name', label=u'Наименование', allow_blank=False, anchor='100%')
-        field_metarole = fields.ExtDictSelectField(name='metarole', label=u'Метароль', anchor='100%', hide_trigger=False)
-        field_metarole.configure_by_dictpack(metaroles.Metaroles_DictPack, app_meta.users_controller)
-        field_metarole.editable = False
-        field_metarole.hide_dict_select_trigger = True
-
-        self.form.items.extend([field_name, field_metarole])
-
-        self.grid = ExtObjectGrid(title=u"Права доступа", region="center")
-        self.grid.action_data = GetRolePermissionAction
-        self.grid.action_new = AddRolePermission
-        self.grid.top_bar.items.append(controls.ExtButton(text=u'Удалить', icon_cls='delete_item', handler='deletePermission'))
-        self.grid.top_bar.button_refresh.hidden = True
-        self.grid.force_fit = True
-        self.grid.allow_paging = False
-        self.grid.row_id_name = 'permission_code'
-        self.grid.store.id_property = 'permission_code'
-        self.grid.store.auto_save = False
-        #self.grid.add_column(header=u'Действие', data_index='permission_code', width=100)
-        self.grid.add_column(header=u'Разрешенные права', data_index='verbose_name', width=100)
-        self.grid.add_bool_column(header=u'Запрет', data_index='disabled', width=50, text_false=u'Нет', text_true=u'Да', hidden=True)
-        self.items.append(self.grid)
-
-        self.buttons.extend([
-            controls.ExtButton(text=u'Сохранить', handler='submitForm'),
-            controls.ExtButton(text=u'Отмена', handler='cancelForm')
-        ])
 
 class AssignedUsersWindow(windows.ExtWindow):
     '''
