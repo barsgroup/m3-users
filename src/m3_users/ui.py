@@ -9,7 +9,6 @@ import metaroles
 
 
 class RolesListWindow(windows.ExtWindow):
-
     def __init__(self, *args, **kwargs):
         super(RolesListWindow, self).__init__(*args, **kwargs)
 
@@ -25,7 +24,6 @@ class RolesListWindow(windows.ExtWindow):
         self.init_component(*args, **kwargs)
 
     def configure_grid(self, **params):
-
         self.grid.add_column(
             header=u'Наименование роли', data_index='name', width=300)
         self.grid.add_column(
@@ -107,13 +105,11 @@ class RolesEditWindow(windows.ExtEditWindow):
         ])
 
     def configure_window(self, user_role, **params):
-
         self.form.url = params.get('form_url')
         self.form.from_object(user_role)
         self._configure_grid(**params)
 
     def _configure_grid(self, **params):
-
         self.grid.url_data = params.get('url_data', None)
         self.grid.url_new = params.get('url_new', None)
         self.grid.top_bar.items.append(controls.ExtButton(

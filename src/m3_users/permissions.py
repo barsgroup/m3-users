@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 u"""
 Права ролей
 ===========
@@ -25,7 +25,7 @@ class ActionsBackend(object):
         Авторизация, возвращает всегда None
         Мы не будем проверять пользователя - на это есть другие бэкенды
         """
-        return None 
+        return None
 
     def get_group_permissions(self, user_obj):
         u"""
@@ -36,9 +36,9 @@ class ActionsBackend(object):
         :type user_obj: :py:class:`django.contrib.auth.models.User`
         """
         if not hasattr(user_obj, '_role_perm_cache'):
-            perms = RolePermission.objects\
-                .filter(role__assigned_users__user=user_obj)\
-                .values_list('permission_code')\
+            perms = RolePermission.objects \
+                .filter(role__assigned_users__user=user_obj) \
+                .values_list('permission_code') \
                 .order_by('permission_code')
             user_obj._role_perm_cache = set()
             for code in perms:

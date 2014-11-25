@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 __version__ = '1.2dev'
 __appname__ = u'Пользователи и роли'

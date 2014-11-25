@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 u"""
 Внешнее API для подсистемы m3_users
 ===================================
@@ -83,11 +83,11 @@ def remove_user_role(user, role):
 
     # снимаем флаг супер-пользователя, если он стоял, и у пользователя не осталось
     # ролей, наследовынных от метароли Супер-Администратора
-    if user.is_superuser\
-        and not models.UserRole.objects.filter(metarole=SUPER_ADMIN_METAROLE,
-                                           assigned_users__user=user).exists():
-            user.is_superuser = False
-            user.save()
+    if user.is_superuser \
+            and not models.UserRole.objects.filter(metarole=SUPER_ADMIN_METAROLE,
+                                                   assigned_users__user=user).exists():
+        user.is_superuser = False
+        user.save()
 
 
 @transaction.commit_on_success
@@ -106,7 +106,7 @@ def set_user_role(user, role):
     """
     # TODO: что этим хотел сказать автор? можно как-то красиво это сделать можно? например exists()
     if len(models.AssignedRole.objects.filter(user=user, role=role)[0:1]) == 0:
-        
+
         if isinstance(role, int):
             role = models.UserRole.objects.get(id=role)
 
@@ -123,7 +123,6 @@ def set_user_role(user, role):
             user.save()
 
 
-            
 @transaction.commit_on_success
 def clear_user_roles(user):
     u"""
@@ -137,15 +136,15 @@ def clear_user_roles(user):
         если пользователь суперпользователь, то снимается флаг суперпользователя
     """
     models.AssignedRole.objects.filter(user=user).delete()
-    
+
     if isinstance(user, int):
         user = auth_models.User.objects.get(id=user)
 
     if user.is_superuser:
         user.is_superuser = False
         user.save()
-        
-    
+
+
 def get_user_by_id(user_id):
     u"""
     Возвращает экземпляр пользователя :py:class:`django.contrib.auth.models.User` по указанному идентификатору.

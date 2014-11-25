@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 u"""
 Вспомогательне методы модуля
 ============================
@@ -26,8 +26,8 @@ def get_roles_query(filter=''):
         query = UserRole.objects.filter(name__icontains=filter)
     else:
         query = UserRole.objects.all()
-    
-    return query.order_by('name') 
+
+    return query.order_by('name')
 
 
 # TODO: может лучше filter=None?, и переименовать filter, чтобы не перекрыть дуфолтный filter
@@ -63,7 +63,7 @@ def get_assigned_users_query(role, filter=None):
     if filter:
         #поиск по полям логин, имя, фамилия, email
         for field in ['username', 'first_name', 'last_name', 'email']:
-            filter_ |= Q(**{'user__'+field+'__icontains': filter})
+            filter_ |= Q(**{'user__' + field + '__icontains': filter})
     query = AssignedRole.objects.filter(Q(role=role) & filter_).select_related('user').select_related('role')
     return query
 
@@ -87,16 +87,16 @@ def get_unassigned_users(role, filter):
     # excluded_users_dict = {row.user.id:row.user for row in assigned_users}
     excluded_users_dict = {}
     for assigned_user in assigned_users:
-        excluded_users_dict[assigned_user.user.id] = assigned_user.user 
+        excluded_users_dict[assigned_user.user.id] = assigned_user.user
 
-    # TODO: может использовать генератор списка?
+        # TODO: может использовать генератор списка?
     # result = [user for user in all_users if not user.id in excluded_users_dict]
     result = []
     for user in all_users:
         # TODO: if not user.id in excluded_users_dict
         if not excluded_users_dict.has_key(user.id):
             result.append(user)
-            
+
     return result
 
 
@@ -112,7 +112,7 @@ def get_assigned_metaroles_query(user):
     # metaroles = AssignedRole.objects.filter(user=user, role__metarole__isnull=False)...
     # return metaroles
 
-    metaroles = AssignedRole.objects.filter(user=user).select_related('role')\
+    metaroles = AssignedRole.objects.filter(user=user).select_related('role') \
         .values('role__metarole').distinct()
     lst = [metarole['role__metarole'] for metarole in metaroles if metarole['role__metarole']]
     # если небыло списка ролей, то возьмем метароли из профиля

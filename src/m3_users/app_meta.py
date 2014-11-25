@@ -28,12 +28,13 @@ def register_actions():
     Регистрация паков в контроллере
     """
     users_controller.packs.extend([
-        RolesActions,
-        UsersActions,
-        Roles_DictPack,
+        RolesActions(),
+        UsersActions(),
+        Roles_DictPack(),
         
-        Metaroles_DictPack, # метароли пользователей
+        Metaroles_DictPack(),  # метароли пользователей
     ])
+
 
 def register_urlpatterns():
     """
@@ -43,7 +44,8 @@ def register_urlpatterns():
         (r'^m3-users', 'm3_users.app_meta.users_view'),
     )
 
-#===============================================================================
+
+# ===============================================================================
 # Регистрация метаролей для приложения
 #===============================================================================        
 def register_metaroles(manager):
@@ -67,6 +69,7 @@ def register_metaroles(manager):
     manager.SUPER_ADMIN_METAROLE.included_metaroles.extend([manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE])
     
     return [manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE, manager.SUPER_ADMIN_METAROLE]
+
 
 #===============================================================================
 # Представления

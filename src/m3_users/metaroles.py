@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 u"""
 Метароли пользователей
 ======================
@@ -57,27 +57,28 @@ class UserMetarole(object):
             if (role != self) and (self in role.included_metaroles):
                 result.append(role)
         return result
-    
+
     def __str__(self):
         """ Более наглядное представление для отладки """
-        return u'%s: %s at %s' % (self.code, self.name, id(self)) 
+        return u'%s: %s at %s' % (self.code, self.name, id(self))
 
 
 class MetaroleManager(object):
     u"""
     Менеджер метаролей пользователя
     """
+
     def __init__(self):
         self._loaded = False
         self._write_lock = threading.RLock()
         self._metaroles = {}
-        
+
     def register_metarole(self, metarole):
         u"""
         Регистрирует метароль в менеджере ролей
         """
         self._metaroles[metarole.code] = metarole
-        
+
     def get_metarole(self, code):
         u"""
         Возвращает экземпляр метароли по коду
@@ -87,14 +88,14 @@ class MetaroleManager(object):
         if self._metaroles.has_key(code):
             return self._metaroles[code]
         return None
-    
+
     def get_registered_metaroles(self):
         u"""
         Возвращает экземпляры всех зарегистроированных в системе метаролей
         """
         self._populate()
         return sorted(self._metaroles.values(), key=lambda metarole: metarole.name)
-    
+
     def _populate(self):
         u"""
         Собирает метароли по объявленным приложениям
@@ -105,7 +106,7 @@ class MetaroleManager(object):
         try:
             if self._loaded:
                 return
-            
+
             for app_name in settings.INSTALLED_APPS:
                 try:
                     module = import_module('.app_meta', app_name)
@@ -126,8 +127,6 @@ class MetaroleManager(object):
             raise
         finally:
             self._write_lock.release()
-        
-
 
 
 #------------------------------------------------------------------------------ 
@@ -184,13 +183,13 @@ class Metaroles_DictPack(BaseDictionaryActions):
             else:
                 data.append(role)
         return {'rows': data}
-    
+
     def get_row(self, id):
         u"""
         возвращает метароль по id
         """
         return metarole_manager.get_metarole(id)
-    
+
     def get_select_window(self, win):
         u"""
         возвращает окно выбора метароли
