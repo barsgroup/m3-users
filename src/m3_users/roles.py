@@ -31,7 +31,7 @@ except ImportError:
     _M3_AUDIT_INSTALLED = False
 
 from users import SelectUsersListWindow
-from forms import RolesListWindow, RolesEditWindow
+from ui import RolesListWindow, RolesEditWindow
 import helpers
 import models
 import api
@@ -100,7 +100,8 @@ class RolesActions(ActionPack):
             'url_edit': self.edit_role_window_action.get_absolute_url(),
             'url_delete': self.delete_role_action.get_absolute_url(),
             'url_show_assigned_users': (
-                self.show_assigned_users_action.get_absolute_url())
+                self.show_assigned_users_action.get_absolute_url()),
+            'show_assigned_users': self.show_assigned_users_action
         }
 
     def create_list_win(self):

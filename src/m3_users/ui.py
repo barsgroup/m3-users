@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import warnings
+
 from m3_ext.ui import windows, panels, controls, fields
 
 import app_meta
@@ -42,6 +44,11 @@ class RolesListWindow(windows.ExtWindow):
                 handler='contextMenu_ShowAssignedUsers'))
         self.grid.row_id_name = 'userrole_id'
 
+        warnings.warn(
+            "Attribute 'action_show_assigned_users' is deprecated. "
+            "Use 'show_assigned_users_url'", FutureWarning)
+        self.grid.action_show_assigned_users = params.get(
+            'show_assigned_users', None)
         # дополнительные действия формы
         self.grid.show_assigned_users_url = params.get(
             'url_show_assigned_users', None)
@@ -89,7 +96,8 @@ class RolesEditWindow(windows.ExtEditWindow):
 
         self.form.items.extend([field_name, field_metarole])
 
-        self.grid = panels.ExtObjectGrid(title=u"Права доступа", region="center")
+        self.grid = panels.ExtObjectGrid(
+            title=u"Права доступа", region="center")
 
         self.items.append(self.grid)
 
