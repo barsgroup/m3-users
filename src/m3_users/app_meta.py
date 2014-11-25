@@ -1,8 +1,5 @@
 #coding:utf-8
 """
-m3_users.app_meta
-=================
-
 Created on 10.06.2010
 
 @author: akvarats
@@ -38,21 +35,19 @@ def register_actions():
         Metaroles_DictPack, # метароли пользователей
     ])
 
-
 def register_urlpatterns():
-    u"""
+    """
     Регистрация конфигурации урлов для приложения m3.contrib.users
     """
     return urls.defaults.patterns('',
         (r'^m3-users', 'm3_users.app_meta.users_view'),
     )
 
-
 #===============================================================================
 # Регистрация метаролей для приложения
 #===============================================================================        
 def register_metaroles(manager):
-    u"""
+    """
     Функция возвращает список метаролей, которые регистрируются
     по умолчанию на уровне Платформы М3.
     
@@ -72,7 +67,6 @@ def register_metaroles(manager):
     manager.SUPER_ADMIN_METAROLE.included_metaroles.extend([manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE])
     
     return [manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE, manager.SUPER_ADMIN_METAROLE]
-
 
 #===============================================================================
 # Представления

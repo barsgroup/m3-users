@@ -42,7 +42,7 @@ function contextMenu_ShowAssignedUsers(){
     }
 
     Ext.Ajax.request({
-       url: '{{ component.grid.action_show_assigned_users.absolute_url }}',
+       url: '{{ component.grid.show_assigned_users_url }}',
        params: Ext.applyIf({ {{component.grid.row_id_name}}: grid.getSelectionModel().getSelected().id},{% if component.action_context %}{{component.action_context.json|safe}}{% else %}{}{% endif %}),
        success: function(response, opts){
            smart_eval(response.responseText);

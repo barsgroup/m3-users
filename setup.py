@@ -1,4 +1,5 @@
-#coding: utf-8
+# coding: utf-8
+
 from setuptools import setup, find_packages
 
 requires = []
@@ -6,7 +7,7 @@ with open('src/requires.txt', 'r') as f:
     requires.extend(f.readlines())
 
 setup(name='m3-users',
-      version='2.0.0',
+      version='2.0.3',
       url='https://bitbucket.org/barsgroup/m3_users',
       license='MIT',
       author='BARS Group',
@@ -17,13 +18,13 @@ setup(name='m3-users',
       install_requires=requires,
       include_package_data=True,
       classifiers=[
-        'Intended Audience :: Developers',
-        'Environment :: Web Environment',
-        'Natural Language :: Russian',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'License :: OSI Approved :: MIT License',
-        'Development Status :: 5 - Production/Stable',
+          'Intended Audience :: Developers',
+          'Environment :: Web Environment',
+          'Natural Language :: Russian',
+          'Natural Language :: English',
+          'Operating System :: OS Independent',
+          'Programming Language :: Python',
+          'License :: OSI Approved :: MIT License',
+          'Development Status :: 5 - Production/Stable',
       ],
-      )
+)
