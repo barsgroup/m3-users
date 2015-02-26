@@ -30,12 +30,12 @@ class ActionsBackend(object):
                 user_obj._role_perm_cache.update(code)
         return user_obj._role_perm_cache
 
-    def get_all_permissions(self, user_obj):
+    def get_all_permissions(self, user_obj, obj=None):
         """
         Возвращается набор строк с правами по всем группам, в которые входит пользователь и права непосредственно пользователя
         В нашем случае это все роли, т.к. у пользователя нет прав :) 
         """
-        if user_obj.is_anonymous():
+        if user_obj.is_anonymous() or obj is not None:
             return set()
         return self.get_group_permissions(user_obj)
 
@@ -43,7 +43,7 @@ class ActionsBackend(object):
         """
         Проверка наличия права у пользователя
         """
-        return perm in self.get_all_permissions(user_obj)
+        return perm in self.get_all_permissions(user_obj, obj)
 
     def has_module_perms(self, user_obj, app_label):
         """
