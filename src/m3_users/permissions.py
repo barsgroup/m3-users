@@ -39,7 +39,7 @@ class ActionsBackend(object):
             return set()
         return self.get_group_permissions(user_obj)
 
-    def has_perm(self, user_obj, perm):
+    def has_perm(self, user_obj, perm, obj=None):
         """
         Проверка наличия права у пользователя
         """
