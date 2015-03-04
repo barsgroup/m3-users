@@ -39,7 +39,6 @@ from users import SelectUsersListWindow
 import helpers
 import models
 import metaroles
-import app_meta
 import api
 
 PERM_OBJECT_NOT_FOUND = u'** объект права не найден **'
@@ -714,6 +713,8 @@ class RolesEditWindow(windows.ExtEditWindow):
     '''
 
     def __init__(self, new_role=False, *args, **kwargs):
+        from app_meta import users_controller
+    
         super(RolesEditWindow, self).__init__(*args, **kwargs)
 
         self.width = 500
@@ -732,7 +733,7 @@ class RolesEditWindow(windows.ExtEditWindow):
 
         field_name = fields.ExtStringField(name='name', label=u'Наименование', allow_blank=False, anchor='100%')
         field_metarole = fields.ExtDictSelectField(name='metarole', label=u'Метароль', anchor='100%', hide_trigger=False)
-        field_metarole.configure_by_dictpack(metaroles.Metaroles_DictPack, app_meta.users_controller)
+        field_metarole.configure_by_dictpack(metaroles.Metaroles_DictPack, users_controller)
         field_metarole.editable = False
         field_metarole.hide_dict_select_trigger = True
 
