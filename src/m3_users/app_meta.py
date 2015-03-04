@@ -10,6 +10,8 @@ from django.conf import urls
 from m3 import authenticated_user_required
 from m3.actions import ActionController
 
+from metaroles import UserMetarole, Metaroles_DictPack
+    
 # Константы:
 GENERIC_USER = 'generic-user'
 ADMIN = 'admin'
@@ -21,10 +23,9 @@ users_controller = ActionController(url='/m3-users', name=u'Пользовате
 
 def register_actions():
 
-    # защита от кроссимпорта
+    # защита от кроссимпорта при импорте констант типов метаролей
     from roles import RolesActions, Roles_DictPack
     from users import UsersActions
-    from metaroles import Metaroles_DictPack
 
     users_controller.packs.extend([
         RolesActions(),
@@ -52,9 +53,7 @@ def register_metaroles(manager):
     
     @param manager: объект, отвечающий за управление метаролями.
     """
-    # защита от кроссимпорта
-    from metaroles import UserMetarole
-    
+
     # метароль обычного пользователя системы
     manager.GENERIC_USER_METAROLE = UserMetarole(GENERIC_USER, u'Обобщенный пользователь')
     
