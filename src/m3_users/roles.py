@@ -713,6 +713,8 @@ class RolesEditWindow(windows.ExtEditWindow):
     '''
 
     def __init__(self, new_role=False, *args, **kwargs):
+    
+        # Защита от кроссимпорта
         from app_meta import users_controller
     
         super(RolesEditWindow, self).__init__(*args, **kwargs)
