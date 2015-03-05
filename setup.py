@@ -6,7 +6,7 @@ with open('src/requires.txt', 'r') as f:
     requires.extend(f.readlines())
 
 setup(name='m3-users',
-      version='3.0.1',
+      version='3.0.2',
       url='https://bitbucket.org/barsgroup/m3_users',
       license='MIT',
       author='BARS Group',
