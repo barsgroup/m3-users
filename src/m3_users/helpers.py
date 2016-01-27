@@ -7,7 +7,7 @@ u"""
 
 .. @author: akvarats
 """
-
+from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
 from django.contrib.auth.models import User
@@ -37,7 +37,7 @@ def get_users_query(filter=''):
 
     :param str filter: необязательный параметр, строка по которому будет произведена фильтрация пользователей
     """
-    if 'django.contrib.auth' in settings.INSTALLED_APPS:
+    if apps.is_installed('django.contrib.auth'):
         if filter:
             query = User.objects.filter(
                 Q(username__icontains=filter) |

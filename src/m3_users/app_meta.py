@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """
 Created on 10.06.2010
 
@@ -10,14 +10,11 @@ from django.conf import urls
 from m3 import authenticated_user_required
 from m3.actions import ActionController
 
-from roles import RolesActions, Roles_DictPack
-from users import UsersActions
-from metaroles import UserMetarole, Metaroles_DictPack
+from .roles import RolesActions, Roles_DictPack
+from .users import UsersActions
+from .metaroles import UserMetarole, Metaroles_DictPack
 
-# Константы:
-GENERIC_USER = 'generic-user'
-ADMIN = 'admin'
-SUPER_ADMIN = 'super-admin'
+from .constants import ADMIN, GENERIC_USER, SUPER_ADMIN
 
 # контроллер
 users_controller = ActionController(url='/m3-users', name=u'Пользователи М3')
@@ -31,7 +28,6 @@ def register_actions():
         RolesActions(),
         UsersActions(),
         Roles_DictPack(),
-        
         Metaroles_DictPack(),  # метароли пользователей
     ])
 
@@ -40,7 +36,8 @@ def register_urlpatterns():
     """
     Регистрация конфигурации урлов для приложения m3.contrib.users
     """
-    return urls.defaults.patterns('',
+    return urls.patterns(
+        '',
         (r'^m3-users', 'm3_users.app_meta.users_view'),
     )
 
