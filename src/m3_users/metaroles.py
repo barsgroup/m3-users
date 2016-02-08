@@ -16,6 +16,7 @@ u"""
 
 import threading
 
+from django.apps import apps
 from django.conf import settings
 from django.utils.importlib import import_module
 
@@ -107,9 +108,9 @@ class MetaroleManager(object):
             if self._loaded:
                 return
 
-            for app_name in settings.INSTALLED_APPS:
+            for app_config in apps.get_app_configs():
                 try:
-                    module = import_module('.app_meta', app_name)
+                    module = import_module('.app_meta', app_config.name)
                 except ImportError, err:
                     if err.args[0].find('No module named') == -1:
                         raise
