@@ -1,0 +1,19 @@
+script: true
+install: true
+language: python
+python:
+- '2.7'
+
+deploy:
+  provider: pypi
+  user: bars-travis
+  on:
+    tags: true
+  distributions: sdist
+  password:
+    secure: ZryUecdgNlD0hbzOqBzhzJoaNqxvKmmM5tI+aoIu572fHKmJQCGAu7OT5WFarMAt3hYVHAXdfm2Vfhd4GEaqti9maGgOEVVaH9PlNXq8qshimdcLT2kpdRkYEimQnFFb717xTsUBmbBHn7BzgJEZnsSxP8rUQVib2M+QVLQzKY0=
+
+notifications:
+  email:
+    recipients:
+    - dev-py@bars-open.ru
