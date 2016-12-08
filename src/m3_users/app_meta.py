@@ -1,11 +1,6 @@
-#coding:utf-8
-"""
-Created on 10.06.2010
+# coding: utf-8
 
-@author: akvarats
-"""
-
-from django.conf import urls
+from django.conf.urls import patterns
 
 from m3 import authenticated_user_required
 from m3.actions import ActionController
@@ -24,9 +19,7 @@ users_controller = ActionController(url='/m3-users', name=u'Пользовате
 
 
 def register_actions():
-    u"""
-    Регистрация паков в контроллере
-    """
+
     users_controller.packs.extend([
         RolesActions(),
         UsersActions(),
@@ -37,17 +30,13 @@ def register_actions():
 
 
 def register_urlpatterns():
-    """
-    Регистрация конфигурации урлов для приложения m3.contrib.users
-    """
-    return urls.defaults.patterns('',
+
+    return patterns(
+        '',
         (r'^m3-users', 'm3_users.app_meta.users_view'),
     )
 
 
-# ===============================================================================
-# Регистрация метаролей для приложения
-#===============================================================================        
 def register_metaroles(manager):
     """
     Функция возвращает список метаролей, которые регистрируются
@@ -58,25 +47,27 @@ def register_metaroles(manager):
     """
     
     # метароль обычного пользователя системы
-    manager.GENERIC_USER_METAROLE = UserMetarole(GENERIC_USER, u'Обобщенный пользователь')
+    manager.GENERIC_USER_METAROLE = UserMetarole(
+        GENERIC_USER, u'Обобщенный пользователь')
     
     # метароль администратора системы
     manager.ADMIN_METAROLE = UserMetarole(ADMIN, u'Администратор')
-    manager.ADMIN_METAROLE.included_metaroles.extend([manager.GENERIC_USER_METAROLE])
+    manager.ADMIN_METAROLE.included_metaroles.extend(
+        [manager.GENERIC_USER_METAROLE])
     
     # метароль супер-администратора системы
-    manager.SUPER_ADMIN_METAROLE = UserMetarole(SUPER_ADMIN, u'Супер-администратор')
-    manager.SUPER_ADMIN_METAROLE.included_metaroles.extend([manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE])
+    manager.SUPER_ADMIN_METAROLE = UserMetarole(
+        SUPER_ADMIN, u'Супер-администратор')
+    manager.SUPER_ADMIN_METAROLE.included_metaroles.extend(
+        [manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE])
     
-    return [manager.GENERIC_USER_METAROLE, manager.ADMIN_METAROLE, manager.SUPER_ADMIN_METAROLE]
+    return [
+        manager.GENERIC_USER_METAROLE,
+        manager.ADMIN_METAROLE,
+        manager.SUPER_ADMIN_METAROLE]
 
 
-#===============================================================================
-# Представления
-#===============================================================================
 @authenticated_user_required
 def users_view(request):
-    u"""
-    Обработчик запросов
-    """
+
     return users_controller.process_request(request)
