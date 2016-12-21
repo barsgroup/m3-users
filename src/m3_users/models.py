@@ -1,13 +1,8 @@
 # coding: utf-8
-u"""
 
-.. Created on 10.06.2010
-
-.. @author: akvarats
-"""
 
 from django.db import models
-from django.contrib.auth.models import User
+from m3_django_compat import AUTH_USER_MODEL
 
 from metaroles import get_metarole
 
@@ -75,8 +70,10 @@ class AssignedRole(models.Model):
     Роль, назначенная на пользователя
     """
     #: пользователь, ссылка :py:class:`django.contrib.auth.models.User`
-    user = models.ForeignKey(User, related_name='assigned_roles',
-                             verbose_name=u'Пользователь')
+    user = models.ForeignKey(
+        AUTH_USER_MODEL,
+        related_name='assigned_roles',
+        verbose_name=u'Пользователь')
 
     #: роль, ссылка :py:class:`m3_users.models.UserRole`
     role = models.ForeignKey(UserRole, related_name='assigned_users',
