@@ -1,10 +1,9 @@
 # coding: utf-8
 
-
 from django.db import models
 from m3_django_compat import AUTH_USER_MODEL
 
-from metaroles import get_metarole
+from .metaroles import get_metarole
 
 
 class UserRole(models.Model):
@@ -32,6 +31,7 @@ class UserRole(models.Model):
         return self.name
 
     class Meta:
+        app_label = 'm3_users'
         db_table = 'm3_users_role'
         verbose_name = u'Роль пользователя'
         verbose_name_plural = u'Роли пользователя'
@@ -60,6 +60,7 @@ class RolePermission(models.Model):
         return self.permission_code
 
     class Meta:
+        app_label = 'm3_users'
         db_table = 'm3_users_rolepermissions'
         verbose_name = u'Право доступа у роли'
         verbose_name_plural = u'Права доступа у ролей'
@@ -105,6 +106,7 @@ class AssignedRole(models.Model):
                                     self.user.username)
 
     class Meta:
+        app_label = 'm3_users'
         db_table = 'm3_users_assignedrole'
         verbose_name = u'Связка роли с пользователем'
         verbose_name_plural = u'Связки ролей с пользователями'
