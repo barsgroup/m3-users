@@ -15,9 +15,9 @@ u"""
 """
 
 import threading
+from importlib import import_module
 
 from django.conf import settings
-from django.utils.importlib import import_module
 
 from m3 import property_json_encode
 from m3.actions.packs import BaseDictionaryActions

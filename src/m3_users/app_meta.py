@@ -5,8 +5,6 @@ from django.conf.urls import patterns
 from m3 import authenticated_user_required
 from m3.actions import ActionController
 
-from roles import RolesActions, Roles_DictPack
-from users import UsersActions
 from metaroles import UserMetarole, Metaroles_DictPack
 
 # Константы:
@@ -19,6 +17,8 @@ users_controller = ActionController(url='/m3-users', name=u'Пользовате
 
 
 def register_actions():
+    from roles import RolesActions, Roles_DictPack
+    from users import UsersActions
 
     users_controller.packs.extend([
         RolesActions(),

@@ -12,8 +12,6 @@ from django.conf import settings
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from models import UserRole, AssignedRole
-
 
 # TODO: может лучше filter=None?, и переименовать filter, чтобы не перекрыть дуфолтный filter
 def get_roles_query(filter=''):
@@ -22,6 +20,9 @@ def get_roles_query(filter=''):
 
     :param str filter: необязательный параметр, название конкретной роли
     """
+
+    from models import UserRole
+
     if filter:
         query = UserRole.objects.filter(name__icontains=filter)
     else:
@@ -59,6 +60,7 @@ def get_assigned_users_query(role, filter=None):
     :type role: :py:class:`m3_users.models.UserRole`
     :param str filter: необязательный параметр, строка по которому будет произведена фильтрация пользователей
     """
+    from models import AssignedRole
     filter_ = Q()
     if filter:
         #поиск по полям логин, имя, фамилия, email
@@ -111,7 +113,7 @@ def get_assigned_metaroles_query(user):
     # TODO: может срау в фильтре избавиться от пустых записей? и вернуть запрос с ролями
     # metaroles = AssignedRole.objects.filter(user=user, role__metarole__isnull=False)...
     # return metaroles
-
+    from models import AssignedRole
     metaroles = AssignedRole.objects.filter(user=user).select_related('role') \
         .values('role__metarole').distinct()
     lst = [metarole['role__metarole'] for metarole in metaroles if metarole['role__metarole']]
