@@ -1,15 +1,9 @@
-# coding:utf-8
-u"""
-Внешнее API для подсистемы m3_users
-===================================
+# coding: utf-8
 
-.. Created on 09.12.2010
-
-.. @author: akvarats
-"""
+u"""Внешнее API для подсистемы m3_users."""
 
 from django.contrib.auth import models as auth_models
-from django.db import transaction
+from m3_django_compat import atomic
 
 from m3_legacy import get_object_by_id
 
@@ -61,7 +55,7 @@ def get_user_roles(user):
     return models.UserRole.objects.filter(assigned_users__user=user).order_by('name')
 
 
-@transaction.commit_on_success
+@atomic
 def remove_user_role(user, role):
     u"""
     Снимает роль у пользователя.
@@ -90,7 +84,7 @@ def remove_user_role(user, role):
         user.save()
 
 
-@transaction.commit_on_success
+@atomic
 def set_user_role(user, role):
     u"""
     Устанавливает роль для пользователя
@@ -123,7 +117,7 @@ def set_user_role(user, role):
             user.save()
 
 
-@transaction.commit_on_success
+@atomic
 def clear_user_roles(user):
     u"""
     Убирает все роли у пользователя
