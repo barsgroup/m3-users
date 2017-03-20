@@ -3,8 +3,7 @@ u"""
 Права ролей
 ===========
 """
-from django.contrib.auth.models import User
-from django.contrib.auth import get_backends
+from django.contrib.auth import get_backends, get_user_model
 
 # TODO: можно обойтись from models import RolePermission
 from m3_users.models import RolePermission
@@ -88,6 +87,7 @@ class ActionsBackend(object):
 
         :param int user_id: идентификатор пользователя
         """
+        User = get_user_model()
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:

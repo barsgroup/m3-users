@@ -1,8 +1,8 @@
 # coding: utf-8
 
 u"""Внешнее API для подсистемы m3_users."""
+from django.contrib.auth import get_user_model
 
-from django.contrib.auth import models as auth_models
 from m3_django_compat import atomic
 
 from m3_legacy import get_object_by_id
@@ -73,7 +73,7 @@ def remove_user_role(user, role):
     models.AssignedRole.objects.filter(user=user, role=role).delete()
 
     if isinstance(user, int):
-        user = auth_models.User.objects.get(id=user)
+        user = get_user_model().objects.get(id=user)
 
     # снимаем флаг супер-пользователя, если он стоял, и у пользователя не осталось
     # ролей, наследовынных от метароли Супер-Администратора
@@ -105,7 +105,7 @@ def set_user_role(user, role):
             role = models.UserRole.objects.get(id=role)
 
         if isinstance(user, int):
-            user = auth_models.User.objects.get(id=user)
+            user = get_user_model().objects.get(id=user)
 
         assigned_role = models.AssignedRole()
         assigned_role.user = user
@@ -132,7 +132,7 @@ def clear_user_roles(user):
     models.AssignedRole.objects.filter(user=user).delete()
 
     if isinstance(user, int):
-        user = auth_models.User.objects.get(id=user)
+        user = get_user_model().objects.get(id=user)
 
     if user.is_superuser:
         user.is_superuser = False
@@ -149,4 +149,4 @@ def get_user_by_id(user_id):
 
         если вдруг в user_id передан реальный пользователь, то он и возвращается.
     """
-    return get_object_by_id(auth_models.User, user_id)
+    return get_object_by_id(get_user_model(), user_id)
