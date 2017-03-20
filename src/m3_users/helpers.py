@@ -9,10 +9,10 @@ u"""
 """
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db.models import Q
-from django.contrib.auth.models import User
 
-from models import UserRole, AssignedRole
+from .models import UserRole, AssignedRole
 
 
 # TODO: может лучше filter=None?, и переименовать filter, чтобы не перекрыть дуфолтный filter
@@ -37,6 +37,8 @@ def get_users_query(filter=''):
 
     :param str filter: необязательный параметр, строка по которому будет произведена фильтрация пользователей
     """
+    User = get_user_model()
+
     if apps.is_installed('django.contrib.auth'):
         if filter:
             query = User.objects.filter(
