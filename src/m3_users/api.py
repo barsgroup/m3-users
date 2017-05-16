@@ -32,9 +32,8 @@ def get_user_metaroles(user):
 
 
 def user_has_metarole(user, metarole):
-    u"""
-    Возвращает True в случае, если пользователю назначена метароль, иначе False.
-    
+    u"""Возвращает True, если пользователю назначена метароль, иначе False.
+
     :param user: пользователь, для которого проверяется наличие метароли
     :type user: :py:class:`django.contrib.auth.models.User`
     :param str metarole: метароль
@@ -52,7 +51,9 @@ def get_user_roles(user):
     :param user: пользователь системы
     :type user: :py:class:`django.contrib.auth.models.User`
     """
-    return models.UserRole.objects.filter(assigned_users__user=user).order_by('name')
+    return models.UserRole.objects.filter(
+        assigned_users__user=user
+    ).order_by('name')
 
 
 @atomic
@@ -67,19 +68,24 @@ def remove_user_role(user, role):
 
     .. note::
 
-        если снимаем роль у суперпользователя, и него не осталось ролей, наследовынных от метароли
-        Супер-Администратора, то сниматся с него флаг суперпользователя
+        если снимаем роль у суперпользователя, и него не осталось ролей,
+        наследованных от метароли Супер-Администратора, то сниматся с него
+        флаг суперпользователя
     """
     models.AssignedRole.objects.filter(user=user, role=role).delete()
 
     if isinstance(user, int):
         user = get_user_model().objects.get(id=user)
 
-    # снимаем флаг супер-пользователя, если он стоял, и у пользователя не осталось
-    # ролей, наследовынных от метароли Супер-Администратора
-    if user.is_superuser \
-            and not models.UserRole.objects.filter(metarole=SUPER_ADMIN_METAROLE,
-                                                   assigned_users__user=user).exists():
+    # снимаем флаг супер-пользователя, если он стоял, и у пользователя не
+    # осталось ролей, наследовынных от метароли Супер-Администратора
+    if (
+        user.is_superuser and not
+        models.UserRole.objects.filter(
+            metarole=SUPER_ADMIN_METAROLE,
+            assigned_users__user=user
+        ).exists()
+    ):
         user.is_superuser = False
         user.save()
 
@@ -96,9 +102,11 @@ def set_user_role(user, role):
 
     .. note::
 
-        если роль суперпользователя, то пользователю ставится флаг суперпользователя
+        если роль суперпользователя, то пользователю ставится флаг
+        суперпользователя
     """
-    # TODO: что этим хотел сказать автор? можно как-то красиво это сделать можно? например exists()
+    # TODO: что этим хотел сказать автор? можно как-то красиво это сделать?
+    # TODO: например exists()
     if len(models.AssignedRole.objects.filter(user=user, role=role)[0:1]) == 0:
 
         if isinstance(role, int):
@@ -127,7 +135,8 @@ def clear_user_roles(user):
 
     .. note::
 
-        если пользователь суперпользователь, то снимается флаг суперпользователя
+        если пользователь суперпользователь, то снимается флаг
+        суперпользователя
     """
     models.AssignedRole.objects.filter(user=user).delete()
 
@@ -140,13 +149,13 @@ def clear_user_roles(user):
 
 
 def get_user_by_id(user_id):
-    u"""
-    Возвращает экземпляр пользователя :py:class:`django.contrib.auth.models.User` по указанному идентификатору.
+    u"""Возвращает экземпляр пользователя AUTH_USER_MODEL по идентификатору.
 
     :param int user_id: искомый пользователь
 
     .. note::
 
-        если вдруг в user_id передан реальный пользователь, то он и возвращается.
+        если вдруг в user_id передан реальный пользователь, то он и
+        возвращается.
     """
     return get_object_by_id(get_user_model(), user_id)
