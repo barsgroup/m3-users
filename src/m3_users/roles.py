@@ -335,8 +335,13 @@ class GetRolePermissionAction(Action):
                     pack_name = act.get_verbose_name()
                 perm.verbose_name = '%s - %s' % (
                     pack_name, act.verbose_name if act.verbose_name else act.__class__.__name__)
-                if sub_code and sub_code in act.sub_permissions:
-                    perm.verbose_name = '%s - %s' % (pack_name, act.sub_permissions[sub_code])
+                if sub_code:
+                    if sub_code in act.sub_permissions:
+                        perm.verbose_name = '%s - %s' % (pack_name, act.sub_permissions[sub_code])
+                    else:
+                        # Не показываем, если наименование прав этого RolePermisson'a отсутствует
+                        # в возможных правах objectpack'а
+                        continue
             res.append(perm)
         res.sort(key=lambda o: o.verbose_name)
         return ExtGridDataQueryResult(res)
