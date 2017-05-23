@@ -5,7 +5,8 @@ u"""
 
 На уровне Платформы объявлены следующие метароли:
 
- - Супер-администратор -- может создавать других администраторов и назначать им права доступа
+ - Супер-администратор -- может создавать других администраторов и назначать им
+   права доступа
  - Администратор -- выполняет административные функции
  - Обобщенный пользователь -- любой пользователь системы
 
@@ -14,15 +15,12 @@ u"""
 .. @author: akvarats
 """
 
+from importlib import import_module
 import threading
 
 from django.apps import apps
-from django.conf import settings
-from django.utils.importlib import import_module
-
 from m3 import property_json_encode
 from m3.actions.packs import BaseDictionaryActions
-
 from m3_legacy import logger
 
 
@@ -42,15 +40,15 @@ class UserMetarole(object):
     @property_json_encode
     def id(self):
         u"""
-        геттер необходим для лучшей маскировки объекта Метароли под объект обычной модели
-        (критично для некоторых операций Dict_Pack'ов)
+        геттер необходим для лучшей маскировки объекта Метароли под объект
+        обычной модели (критично для некоторых операций Dict_Pack'ов)
         """
         return self.code
 
     def get_owner_metaroles(self):
         u"""
-        Возвращает список метаролей в которые входит наша метароль. Проще говоря список родителей,
-        ребенком которых является наша метароль. 
+        Возвращает список метаролей в которые входит наша метароль. Проще
+        говоря список родителей, ребенком которых является наша метароль.
         """
         result = []
         # TODO: может сразу исключить self из запроса?
@@ -85,17 +83,16 @@ class MetaroleManager(object):
         Возвращает экземпляр метароли по коду
         """
         self._populate()
-        # TODO: можно обойтись return self._metaroles.get(code)
-        if self._metaroles.has_key(code):
-            return self._metaroles[code]
-        return None
+        return self._metaroles.get(code)
 
     def get_registered_metaroles(self):
         u"""
         Возвращает экземпляры всех зарегистроированных в системе метаролей
         """
         self._populate()
-        return sorted(self._metaroles.values(), key=lambda metarole: metarole.name)
+        return sorted(
+            self._metaroles.values(), key=lambda metarole: metarole.name
+        )
 
     def _populate(self):
         u"""
@@ -124,7 +121,9 @@ class MetaroleManager(object):
                                 self.register_metarole(metarole)
             self._loaded = True
         except:
-            logger.exception(u'Не удалось выполнить метод _populate у MetaroleManager')
+            logger.exception(
+                u'Не удалось выполнить метод _populate у MetaroleManager'
+            )
             raise
         finally:
             self._write_lock.release()
@@ -171,15 +170,14 @@ class Metaroles_DictPack(BaseDictionaryActions):
     list_columns = [('name', u'Наименование метароли')]
     list_readonly = True
 
-    # TODO: переименовать filter
     # TODO: многие параметры не используются. тогда зачем они?
     # TODO: вместо find, нельзя ли использовать in?
-    def get_rows(self, offset, limit, filter, user_sort=''):
+    def get_rows(self, offset, limit, filter_, user_sort=''):
         data = []
         for role in metarole_manager.get_registered_metaroles():
-            if filter:
+            if filter_:
                 # Регистронезависимое вхождение строки
-                if role.name.upper().find(filter.upper()) != -1:
+                if role.name.upper().find(filter_.upper()) != -1:
                     data.append(role)
             else:
                 data.append(role)
