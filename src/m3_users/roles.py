@@ -37,8 +37,6 @@ import helpers
 import models
 import api
 
-PERM_OBJECT_NOT_FOUND = u'** объект права не найден **'
-
 
 class RolesActions(ActionPack):
     """
@@ -319,15 +317,15 @@ class GetRolePermissionAction(Action):
             sub_code = codes[1] if len(codes) > 1 else ''
             act = ControllerCache.find_node_by_perm(act_code)
             if not act:
-                perm.verbose_name = PERM_OBJECT_NOT_FOUND
                 # попробуем найти набор экшенов, если есть суб-код
-                if sub_code:
-                    pack = urls.get_pack_by_url(act_code)
-                    if pack:
-                        pack_name = pack.get_verbose_name()
-                        if sub_code and sub_code in pack.sub_permissions.keys():
-                            #perm.verbose_name = "%s. %s" % (pack_name,pack.sub_permissions[sub_code])
-                            perm.verbose_name = "%s - %s" % (pack_name, pack.sub_permissions[sub_code])
+                pack = urls.get_pack_by_url(act_code)
+                if sub_code and pack and sub_code in pack.sub_permissions.keys():
+                    pack_name = pack.get_verbose_name()
+                    perm.verbose_name = "%s - %s" % (
+                        pack_name, pack.sub_permissions[sub_code])
+                else:
+                    # Объект права не найден - не показываем
+                    continue
             else:
                 if act.parent:
                     pack_name = act.parent.get_verbose_name()
