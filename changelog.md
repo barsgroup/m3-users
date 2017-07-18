@@ -1,5 +1,9 @@
 ## История изменений
 
+**2.2.3**
+- Вывод прав пользователя в `GetRolePermissionAction` - убраны
+  ненайденные.
+
 **2.2.2**
 - Обновление app_meta.register_urlpatterns для совместимости с Django 1.10.
 - Исправлен вывод прав пользователя в `GetRolePermissionAction` - убраны
