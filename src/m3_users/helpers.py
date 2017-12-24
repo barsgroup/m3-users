@@ -7,10 +7,9 @@ u"""
 
 .. @author: akvarats
 """
-from django.apps import apps
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from m3_django_compat import get_installed_apps
 
 from .models import UserRole, AssignedRole
 
@@ -39,7 +38,7 @@ def get_users_query(filter=''):
     """
     User = get_user_model()
 
-    if apps.is_installed('django.contrib.auth'):
+    if 'django.contrib.auth' in get_installed_apps():
         if filter:
             query = User.objects.filter(
                 Q(username__icontains=filter) |
