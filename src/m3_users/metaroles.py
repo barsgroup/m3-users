@@ -18,9 +18,9 @@ u"""
 from importlib import import_module
 import threading
 
-from django.apps import apps
 from m3 import property_json_encode
 from m3.actions.packs import BaseDictionaryActions
+from m3_django_compat import get_installed_apps
 from m3_legacy import logger
 
 
@@ -105,9 +105,9 @@ class MetaroleManager(object):
             if self._loaded:
                 return
 
-            for app_config in apps.get_app_configs():
+            for app_name in get_installed_apps():
                 try:
-                    module = import_module('.app_meta', app_config.name)
+                    module = import_module('.app_meta', app_name)
                 except ImportError, err:
                     if err.args[0].find('No module named') == -1:
                         raise
