@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-
 import warnings
 
 from m3_ext.ui import windows, panels, controls, fields
 
-import app_meta
-import metaroles
+from . import app_meta
+from . import metaroles
 
 
 class RolesListWindow(windows.ExtWindow):

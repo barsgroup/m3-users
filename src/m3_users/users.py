@@ -16,7 +16,7 @@ from m3_ext.ui import panels
 from m3_ext.ui import controls
 from m3_ext.ui.helpers import paginated_json_data
 
-from helpers import get_users_query
+from .helpers import get_users_query
 
 
 class UsersActions(ActionPack):

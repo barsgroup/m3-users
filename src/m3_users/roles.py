@@ -31,11 +31,11 @@ try:
 except ImportError:
     _M3_AUDIT_INSTALLED = False
 
-from users import SelectUsersListWindow
-from ui import RolesListWindow, RolesEditWindow
-import helpers
-import models
-import api
+from .users import SelectUsersListWindow
+from .ui import RolesListWindow, RolesEditWindow
+from . import helpers
+from . import models
+from . import api
 
 
 class RolesActions(ActionPack):

@@ -7,9 +7,9 @@ from m3_django_compat import atomic
 
 from m3_legacy import get_object_by_id
 
-from helpers import get_assigned_metaroles_query
-from metaroles import get_metarole
-import models
+from .helpers import get_assigned_metaroles_query
+from .metaroles import get_metarole
+from . import models
 
 
 SUPER_ADMIN_METAROLE = 'super-admin'
