@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import warnings
 
 from m3_ext.ui import windows, panels, controls, fields
 
-from . import app_meta
 from . import metaroles
 
 
@@ -64,6 +64,8 @@ class RolesEditWindow(windows.ExtEditWindow):
 
     def __init__(self, new_role=False, *args, **kwargs):
         super(RolesEditWindow, self).__init__(*args, **kwargs)
+
+        from . import app_meta
 
         self.width = 500
         self.height = 400
