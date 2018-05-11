@@ -108,7 +108,7 @@ class MetaroleManager(object):
             for app_name in get_installed_apps():
                 try:
                     module = import_module('.app_meta', app_name)
-                except ImportError, err:
+                except ImportError as err:
                     if err.args[0].find('No module named') == -1:
                         raise
                     continue
