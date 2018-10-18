@@ -43,7 +43,9 @@ class RolePermission(models.Model):
     """
 
     #: роль, связь с :py:class:`m3_users.models.UserRole`
-    role = models.ForeignKey(UserRole, verbose_name=u'Роль')
+    role = models.ForeignKey(
+        UserRole, verbose_name=u'Роль', on_delete=models.CASCADE
+    )
 
     #: строка, код права доступа
     permission_code = models.CharField(max_length=200, db_index=True,
@@ -74,11 +76,17 @@ class AssignedRole(models.Model):
     user = models.ForeignKey(
         AUTH_USER_MODEL,
         related_name='assigned_roles',
-        verbose_name=u'Пользователь')
+        verbose_name=u'Пользователь',
+        on_delete=models.CASCADE,
+    )
 
     #: роль, ссылка :py:class:`m3_users.models.UserRole`
-    role = models.ForeignKey(UserRole, related_name='assigned_users',
-                             verbose_name=u'Роль')
+    role = models.ForeignKey(
+        UserRole,
+        related_name='assigned_users',
+        verbose_name=u'Роль',
+        on_delete=models.CASCADE,
+    )
 
     # TODO: Удалить, за очевидной ненужностью
     def user_login(self):
