@@ -3,7 +3,10 @@ u"""
 Права ролей
 ===========
 """
-from django.contrib.auth import get_backends, get_user_model
+from django.contrib.auth import get_backends
+from django.contrib.auth import get_user_model
+
+from m3_django_compat import is_authenticated
 
 # TODO: можно обойтись from models import RolePermission
 from m3_users.models import RolePermission
@@ -52,7 +55,7 @@ class ActionsBackend(object):
         :param user_obj: пользователь
         :type user_obj: :py:class:`django.contrib.auth.models.User`
         """
-        if user_obj.is_anonymous():
+        if not is_authenticated(user_obj):
             return set()
         return self.get_group_permissions(user_obj)
 
