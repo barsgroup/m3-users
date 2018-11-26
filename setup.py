@@ -14,7 +14,7 @@ setup(
     description=u'Пользователи и роли',
     install_requires=(
         'm3-builder>=1.0.1',
-        'm3-django-compat>=1.4.2',
+        'm3-django-compat>=1.7.1',
         'm3-ui',
         'm3_legacy',
     ),
