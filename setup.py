@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='m3-users',
-    url='https://bitbucket.org/barsgroup/m3_users',
+    url='https://github.com/barsgroup/m3-users',
     license='MIT',
     author='BARS Group',
     author_email='bars@bars-open.ru',
