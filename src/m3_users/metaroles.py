@@ -16,12 +16,12 @@ u"""
 """
 
 from importlib import import_module
+import logging
 import threading
 
 from m3 import property_json_encode
 from m3.actions.packs import BaseDictionaryActions
 from m3_django_compat import get_installed_apps
-from m3_legacy import logger
 
 
 class UserMetarole(object):
@@ -121,7 +121,7 @@ class MetaroleManager(object):
                                 self.register_metarole(metarole)
             self._loaded = True
         except:
-            logger.exception(
+            logging.exception(
                 u'Не удалось выполнить метод _populate у MetaroleManager'
             )
             raise

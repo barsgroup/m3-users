@@ -5,6 +5,7 @@ Created on 11.06.2010
 @author: akvarats
 '''
 import inspect
+import logging
 
 from m3.db import safe_delete, queryset_limiter
 from m3.actions import (urls,
@@ -20,8 +21,6 @@ from m3_ext.ui import windows, panels, fields, controls, helpers as ui_helpers
 from m3_ext.ui.fields.complex import ExtSearchField
 from m3_ext.ui.containers import ExtTree, ExtTreeNode
 from m3_ext.ui.results import ExtUIScriptResult, ExtGridDataQueryResult
-
-from m3_legacy import logger
 
 try:
     from m3_audit.manager import AuditManager
@@ -614,8 +613,9 @@ class SaveRoleAction(Action):
                         type=RolesAuditModel.PERMISSION_REMOVAL)
                     # end
         except:
-            logger.exception(u'Не удалось сохранить роль пользователя')
-            return OperationResult(success=False, message=u'Не удалось сохранить роль пользователя.')
+            msg = u'Не удалось сохранить роль пользователя'
+            logging.exception(msg)
+            return OperationResult(success=False, message=msg)
 
         return OperationResult(success=True)
 
@@ -691,9 +691,10 @@ class DeleteRoleAction(Action):
                 return OperationResult(success=False,
                                        message=u'Не удалось удалить роль пользователя.<br>На эту запись есть ссылки в базе данных.')
         except:
-            logger.exception(u'Не удалось удалить роль пользователя')
+            msg = u'Не удалось удалить роль пользователя. Подробности в логах системы.'
+            logging.exception(msg)
             return OperationResult(success=False,
-                                   message=u'Не удалось удалить роль пользователя.<br>Подробности в логах системы.')
+                                   message=msg)
 
         return OperationResult(success=True)
 
@@ -724,13 +725,13 @@ class AssignUsers(Action):
                     user_id = int(strid)
                     api.set_user_role(user_id, context.userrole_id)
                 except ValueError:
-                    logger.warning(u'Не верный user id %s' % strid)
+                    logging.warning(u'Не верный user id %s' % strid)
                     continue
 
         except:
-            logger.exception(u'Не удалось добавить список пользователей в роль')
-
-            return OperationResult(success=False, message=u'Не удалось добавить пользователей в роль')
+            msg = u'Не удалось добавить список пользователей в роль'
+            logging.exception(msg)
+            return OperationResult(success=False, message=msg)
         return OperationResult(success=True, )
 
 
@@ -758,8 +759,9 @@ class DeleteAssignedUser(Action):
             try:
                 api.remove_user_role(assigned_user.user, assigned_user.role)
             except Exception:
-                logger.exception()
-                return OperationResult.by_message(u'Не удалось удалить запись. Подробности в логах системы.')
+                msg = u'Не удалось удалить запись. Подробности в логах системы.'
+                logging.exception(msg)
+                return OperationResult.by_message(msg)
 
         return OperationResult()
 

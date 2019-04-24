@@ -1,11 +1,11 @@
 # coding: utf-8
 
 u"""Внешнее API для подсистемы m3_users."""
+from six import string_types
+
 from django.contrib.auth import get_user_model
 
 from m3_django_compat import atomic
-
-from m3_legacy import get_object_by_id
 
 from .helpers import get_assigned_metaroles_query
 from .metaroles import get_metarole
@@ -158,4 +158,15 @@ def get_user_by_id(user_id):
         если вдруг в user_id передан реальный пользователь, то он и
         возвращается.
     """
-    return get_object_by_id(get_user_model(), user_id)
+    result = None
+    model = get_user_model()
+
+    if isinstance(user_id, (int, string_types)):
+        try:
+            result = model.objects.get(pk=user_id)
+        except model.DoesNotExist:
+            result = None
+    elif isinstance(user_id, model):
+        result = user_id
+
+    return result
