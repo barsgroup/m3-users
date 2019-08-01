@@ -1,26 +1,44 @@
-# coding:utf-8
-'''
+# coding: utf-8
+
+"""
 Created on 11.06.2010
 
 @author: akvarats
-'''
+"""
+
 import inspect
 import logging
 
-from m3.db import safe_delete, queryset_limiter
-from m3.actions import (urls,
-                        Action,
-                        ActionPack,
-                        ACD,
-                        ControllerCache,
-                        ActionContext, )
-from m3.actions.results import PreJsonResult, JsonResult, OperationResult
+from m3.actions import ACD
+from m3.actions import Action
+from m3.actions import ActionContext
+from m3.actions import ActionPack
+from m3.actions import ControllerCache
+from m3.actions import urls
 from m3.actions.packs import BaseDictionaryModelActions
-
-from m3_ext.ui import windows, panels, fields, controls, helpers as ui_helpers
+from m3.actions.results import JsonResult
+from m3.actions.results import OperationResult
+from m3.actions.results import PreJsonResult
+from m3.db import queryset_limiter
+from m3.db import safe_delete
+from m3_ext.ui import controls
+from m3_ext.ui import fields
+from m3_ext.ui import helpers as ui_helpers
+from m3_ext.ui import panels
+from m3_ext.ui import windows
+from m3_ext.ui.containers import ExtTree
+from m3_ext.ui.containers import ExtTreeNode
 from m3_ext.ui.fields.complex import ExtSearchField
-from m3_ext.ui.containers import ExtTree, ExtTreeNode
-from m3_ext.ui.results import ExtUIScriptResult, ExtGridDataQueryResult
+from m3_ext.ui.results import ExtGridDataQueryResult
+from m3_ext.ui.results import ExtUIScriptResult
+
+from . import api
+from . import helpers
+from . import models
+from .ui import RolesEditWindow
+from .ui import RolesListWindow
+from .users import SelectUsersListWindow
+
 
 try:
     from m3_audit.manager import AuditManager
@@ -29,12 +47,6 @@ try:
     _M3_AUDIT_INSTALLED = True
 except ImportError:
     _M3_AUDIT_INSTALLED = False
-
-from .users import SelectUsersListWindow
-from .ui import RolesListWindow, RolesEditWindow
-from . import helpers
-from . import models
-from . import api
 
 
 class RolesActions(ActionPack):
@@ -138,7 +150,7 @@ class RolesActions(ActionPack):
 # UI actions
 # - RolesWindowAction -- получение окна со списком ролей
 # - EditRoleWindowAction -- получение окна редактирования роли
-#=============================================================================
+# =============================================================================
 class RolesWindowAction(Action):
     """
     Действие на получение окна показа списка пользовательских ролей
@@ -183,9 +195,10 @@ class EditRoleWindowAction(Action):
 
 
 class ShowAssignedUsersAction(Action):
-    '''
-    Получение окна со списком связанных пользователей
-    '''
+    """
+    Получение окна со списком связанных пользователей.
+    """
+
     url = '/role-assigned-users-window'
 
     def context_declaration(self):
@@ -202,9 +215,12 @@ class ShowAssignedUsersAction(Action):
 
 
 class SelectUsersToAssignWindowAction(Action):
-    '''
-    Показ окна с выбором сотрудников, которые не были выбраны ранее для указанной роли
-    '''
+    """
+    Показ окна с выбором сотрудников,
+    которые не были выбраны ранее для указанной роли.
+
+    """
+
     url = '/role-assigned-users-append-window'
     need_check_permission = True
     verbose_name = u'Добавление пользователя роли'
@@ -235,10 +251,9 @@ class AddRolePermission(Action):
         return ExtUIScriptResult(window)
 
 
-#===============================================================================
+# =============================================================================
 # DATA actions
-#===============================================================================
-
+# =============================================================================
 class RolesDataAction(Action):
     url = '/roles-data'
 
@@ -251,13 +266,19 @@ class RolesDataAction(Action):
 
     def run(self, request, context):
         return JsonResult(
-            ui_helpers.paginated_json_data(helpers.get_roles_query(context.filter), context.start, context.limit))
+            ui_helpers.paginated_json_data(
+                helpers.get_roles_query(context.filter),
+                context.start, context.limit)
+        )
 
 
 class RoleAssignedUsersDataAction(Action):
-    '''
-    Получение данных (списка) пользователей, которые прикреплены к указанной роли
-    '''
+    """
+    Получение данных (списка) пользователей,
+    которые прикреплены к указанной роли.
+
+    """
+
     url = '/role-users'
 
     def context_declaration(self):
@@ -270,14 +291,17 @@ class RoleAssignedUsersDataAction(Action):
 
     def run(self, request, context):
         filter = getattr(context, 'filter', None)
-        return ExtGridDataQueryResult(helpers.get_assigned_users_query(context.userrole_id, filter), context.start,
-                                      context.limit)
+        return ExtGridDataQueryResult(
+            helpers.get_assigned_users_query(context.userrole_id, filter),
+            context.start, context.limit
+        )
 
 
 class UsersForRoleAssignmentData(Action):
-    '''
-    Получение списка пользователей, которые могут быть назначены на роль
-    '''
+    """
+    Получение списка пользователей, которые могут быть назначены на роль.
+
+    """
 
     url = '/role-assign-users-unassigned'
 
@@ -290,16 +314,18 @@ class UsersForRoleAssignmentData(Action):
         ]
 
     def run(self, request, context):
-        users = helpers.get_unassigned_users(context.userrole_id, context.filter)
+        users = helpers.get_unassigned_users(
+            context.userrole_id, context.filter)
         rows, total = queryset_limiter(users, context.start, context.limit)
         return PreJsonResult({'rows': rows, 'total': total})
-        #return actions.ExtGridDataQueryResult(helpers.get_unassigned_users(context.userrole_id, context.filter))
 
 
 class GetRolePermissionAction(Action):
-    '''
+    """
     Получение списка прав доступа для указанной роли
-    '''
+
+    """
+
     url = '/role-permission-rows'
 
     def context_declaration(self):
@@ -308,7 +334,8 @@ class GetRolePermissionAction(Action):
         ]
 
     def run(self, request, context):
-        perms = models.RolePermission.objects.filter(role=int(context.userrole_id))
+        perms = models.RolePermission.objects.filter(
+            role=int(context.userrole_id))
         res = []
         for perm in perms:
             codes = str(perm.permission_code).split('#')
@@ -318,7 +345,8 @@ class GetRolePermissionAction(Action):
             if not act:
                 # попробуем найти набор экшенов, если есть суб-код
                 pack = urls.get_pack_by_url(act_code)
-                if sub_code and pack and sub_code in pack.sub_permissions.keys():
+                if (sub_code
+                        and pack and sub_code in pack.sub_permissions.keys()):
                     pack_name = pack.get_verbose_name()
                     perm.verbose_name = "%s - %s" % (
                         pack_name, pack.sub_permissions[sub_code])
@@ -331,12 +359,16 @@ class GetRolePermissionAction(Action):
                 else:
                     pack_name = act.get_verbose_name()
                 perm.verbose_name = '%s - %s' % (
-                    pack_name, act.verbose_name if act.verbose_name else act.__class__.__name__)
+                    pack_name,
+                    act.verbose_name
+                    if act.verbose_name else act.__class__.__name__)
                 if sub_code:
                     if sub_code in act.sub_permissions:
-                        perm.verbose_name = '%s - %s' % (pack_name, act.sub_permissions[sub_code])
+                        perm.verbose_name = '%s - %s' % (
+                            pack_name, act.sub_permissions[sub_code])
                     else:
-                        # Не показываем, если наименование прав этого RolePermisson'a отсутствует
+                        # Не показываем, если наименование прав
+                        # этого RolePermisson'a отсутствует
                         # в возможных правах objectpack'а
                         continue
             res.append(perm)
@@ -345,15 +377,21 @@ class GetRolePermissionAction(Action):
 
 
 def get_all_permission_tree():
-    '''
+    """
     Общий подход к формированию дерева прав доступа (алгоритм):
-    собирается список прав доступа исходя из наборов действий, действий, субправ наборов действий, субправ действий
-    у каждого элемента списка прав должен быть путь в дереве (пока строкой), наименование права доступа, полное наименование права (для грида прав)
-    путь в дереве строится из значения path элемента, а если он отсутствует, то по иерархии этого элемента в фактической структуре действий и набора действий
-    '''
+    собирается список прав доступа исходя из наборов действий, действий,
+    субправ наборов действий, субправ действий
+    у каждого элемента списка прав должен быть путь в дереве (пока строкой),
+    наименование права доступа, полное наименование права (для грида прав)
+    путь в дереве строится из значения path элемента, а если он отсутствует,
+    то по иерархии этого элемента в фактической структуре действий
+    и набора действий.
+
+    """
 
     class PermProxy(ExtTreeNode):
-        def __init__(self, id, parent=None, name='', url='', can_select=True, fullname=None, path=''):
+        def __init__(self, id, parent=None, name='', url='', can_select=True,
+                     fullname=None, path=''):
             super(PermProxy, self).__init__()
             self.parent = parent
             if parent:
@@ -368,21 +406,22 @@ def get_all_permission_tree():
 
     def find_node(node_name, parent_node, res):
         for item in res:
-            if item.parent == parent_node and item.name.upper() == node_name.upper():
+            if (item.parent == parent_node
+                    and item.name.upper() == node_name.upper()):
                 return item
         return None
 
     def add_path(path, res):
-        '''
-        Добавление пути набора действий в дерево
-        '''
+        """Добавление пути набора действий в дерево."""
+
         parent_node = None
         if path:
-            items = path.strip().split("\\")  #.replace("/", "\\")
+            items = path.strip().split("\\")
             for name in items:
                 node = find_node(name, parent_node, res)
                 if not node:
-                    node = PermProxy(len(res) + 1, parent_node, name, '', False)
+                    node = PermProxy(
+                        len(res) + 1, parent_node, name, '', False)
                     res.append(node)
                 parent_node = node
         return parent_node
@@ -392,8 +431,9 @@ def get_all_permission_tree():
         if action:
             if sub_perm_code in action.sub_permissions.keys():
                 path = action.sub_permissions[sub_perm_code]
-                items = path.strip().split("\\")  #.replace("/", "\\")
-                # если длина пути больше 1, значит указали путь - выделим путь и имя
+                items = path.strip().split("\\")
+                # если длина пути больше 1,
+                # значит указали путь - выделим путь и имя
                 if len(items) > 1:
                     name = items[-1]
                     items.remove(name)
@@ -401,18 +441,27 @@ def get_all_permission_tree():
                 else:
                     # если нет пути, то построим путь по экшену
                     result = get_action_perm_path(action)
-                    result = result + ('\\' if result != '' else '') + action.get_verbose_name()
+                    result = (
+                            result
+                            + ('\\' if result != '' else '')
+                            + action.get_verbose_name()
+                    )
         return result
 
     def get_action_perm_path(action):
         result = ''
         if action:
-            # если указан путь, то строится по этому пути, иначе по иерархии паков
+            # если указан путь,
+            # то строится по этому пути, иначе по иерархии паков
             if action.path:
                 result = action.path
             else:
                 result = get_actionpack_perm_path(action.parent)
-                result = result + ('\\' if result != '' else '') + action.parent.get_verbose_name()
+                result = (
+                        result
+                        + ('\\' if result != '' else '')
+                        + action.parent.get_verbose_name()
+                )
         return result
 
     def get_actionpack_sub_perm_path(actionpack, sub_perm_code):
@@ -420,8 +469,9 @@ def get_all_permission_tree():
         if actionpack:
             if sub_perm_code in actionpack.sub_permissions.keys():
                 path = actionpack.sub_permissions[sub_perm_code]
-                items = path.strip().split("\\")  #.replace("/", "\\")
-                # если длина пути больше 1, значит указали путь - выделим путь и имя
+                items = path.strip().split("\\")
+                # если длина пути больше 1,
+                # значит указали путь - выделим путь и имя
                 if len(items) > 1:
                     name = items[-1]
                     items.remove(name)
@@ -429,37 +479,39 @@ def get_all_permission_tree():
                 else:
                     # если нет пути, то построим путь по набору экшенов
                     result = get_actionpack_perm_path(actionpack)
-                    result = result + ('\\' if result != '' else '') + actionpack.get_verbose_name()
+                    result = (
+                            result
+                            + ('\\' if result != '' else '')
+                            + actionpack.get_verbose_name()
+                    )
         return result
 
     def get_actionpack_perm_path(actionpack):
         result = ''
         if actionpack:
-            # если указан путь, то строится по этому пути, иначе по иерархии паков
+            # если указан путь,
+            # то строится по этому пути, иначе по иерархии паков
             if actionpack.path:
                 result = actionpack.path
             else:
                 if actionpack.parent:
                     result = get_actionpack_perm_path(actionpack.parent)
-                    result = result + ('\\' if result != '' else '') + actionpack.parent.get_verbose_name()
+                    result = (
+                            result
+                            + ('\\' if result != '' else '')
+                            + actionpack.parent.get_verbose_name()
+                    )
         return result
 
     def add_nodes(parent_node, action_set, res, ctrl):
-        # если передали Набор действий, то у него надо взять Действия и подчиненные Наборы
+        # если передали Набор действий,
+        # то у него надо взять Действия и подчиненные Наборы
         if isinstance(action_set, ActionPack):
-            # найдем и создадим путь, по которому набор будет отображаться в дереве
-            #path = action_set.path if hasattr(action_set, 'path') and action_set.path else ctrl.verbose_name if ctrl.verbose_name else ctrl.__class__.__name__
-            #start_count = len(res)
-            #parent_node = add_path(path, res)
-            # получим отображаемое имя набора
-            #name = action_set.get_verbose_name()
-            #item = PermProxy(len(res) + 1, parent_node, name, action_set.absolute_url(), False)
-            #res.append(item)
-            #count = len(res)
             # обработаем действия
             if action_set.need_check_permission:
                 for act in action_set.actions:
-                    # добавляем если надо проверять права или есть подчиненные права
+                    # добавляем если надо проверять права
+                    # или есть подчиненные права
                     add_nodes(None, act, res, ctrl)
             # обработаем подчиненные права
             # добавляем если надо проверять права или есть подчиненные права
@@ -469,8 +521,10 @@ def get_all_permission_tree():
                     fullname = '%s - %s' % (pack_name, value)
                     path = get_actionpack_sub_perm_path(action_set, key)
                     url = action_set.get_sub_permission_code(key)
-                    if not url in res_urls.keys():
-                        child4 = PermProxy(len(res) + 1, None, value, url, True, fullname, path)
+                    if url not in res_urls.keys():
+                        child4 = PermProxy(
+                            len(res) + 1, None, value, url, True,
+                            fullname, path)
                         res.append(child4)
                         res_urls[url] = child4
             # обработаем подчиненные Наборы
@@ -493,14 +547,17 @@ def get_all_permission_tree():
                 if action_set.need_check_permission:
                     path = get_action_perm_path(action_set)
                     url = action_set.get_permission_code()
-                    if not url in res_urls.keys():
-                        item = PermProxy(len(res) + 1, None, name, url, True, fullname, path)
+                    if url not in res_urls.keys():
+                        item = PermProxy(
+                            len(res) + 1, None, name, url, True,
+                            fullname, path)
                         res.append(item)
                         res_urls[url] = item
                 # у действия берем подчиненные права
                 for key, value in action_set.sub_permissions.items():
                     items = value.strip().split("\\")
-                    # если длина пути больше 1, значит указали путь - выделим путь и имя
+                    # если длина пути больше 1,
+                    # значит указали путь - выделим путь и имя
                     if len(items) > 1:
                         name = items[-1]
                         pack_name = items[-2]
@@ -510,7 +567,9 @@ def get_all_permission_tree():
                     path = get_action_sub_perm_path(action_set, key)
                     url = action_set.get_sub_permission_code(key)
                     if not url in res_urls.keys():
-                        child3 = PermProxy(len(res) + 1, None, name, url, True, fullname, path)
+                        child3 = PermProxy(
+                            len(res) + 1, None, name, url,
+                            True, fullname, path)
                         res.append(child3)
                         res_urls[url] = item
 
@@ -537,14 +596,11 @@ def get_all_permission_tree():
     return nodes
 
 
-#===============================================================================
+# =============================================================================
 # OPERATIONS
-#===============================================================================
-
+# =============================================================================
 class SaveRoleAction(Action):
-    '''
-    Сохранение роли пользователя
-    '''
+    """Сохранение роли пользователя."""
 
     url = '/save-role'
 
@@ -556,9 +612,10 @@ class SaveRoleAction(Action):
 
     def run(self, request, context):
         try:
-            if (context.userrole_id > 0):
+            if context.userrole_id > 0:
                 try:
-                    user_role = models.UserRole.objects.get(id=context.userrole_id)
+                    user_role = models.UserRole.objects.get(
+                        id=context.userrole_id)
                 except models.UserRole.DoesNotExist:
                     return OperationResult(
                         success=False,
@@ -568,8 +625,10 @@ class SaveRoleAction(Action):
             context.user_role = user_role
 
             # аудит
-            existing_permissions = self._get_existing_permissions(request, context)
-            supplied_permissions = self._get_supplied_permissions(request, context)
+            existing_permissions = self._get_existing_permissions(
+                request, context)
+            supplied_permissions = self._get_supplied_permissions(
+                request, context)
             # end
 
             window = RolesEditWindow()
@@ -582,18 +641,21 @@ class SaveRoleAction(Action):
             ids = []
             for perm in context.perms:
                 code = perm['permission_code']
-                q = models.RolePermission.objects.filter(role=user_role, permission_code=code).all()
+                q = models.RolePermission.objects.filter(
+                    role=user_role, permission_code=code).all()
                 if len(q) > 0:
                     perm_obj = q[0]
                 else:
-                    perm_obj = models.RolePermission(role=user_role, permission_code=perm['permission_code'])
+                    perm_obj = models.RolePermission(
+                        role=user_role,
+                        permission_code=perm['permission_code'])
                 perm_obj.disabled = perm['disabled']
-                # self._handle_record_auditing(request, context, perm_obj, user_role) # аудит до сохранения,- TODO?
                 perm_obj.save()
 
                 ids.append(perm_obj.id)
             # удалим те, которые не обновились
-            models.RolePermission.objects.filter(role=user_role).exclude(id__in=ids).delete()
+            models.RolePermission.objects.filter(
+                role=user_role).exclude(id__in=ids).delete()
 
             # аудит
             if _M3_AUDIT_INSTALLED:
@@ -620,11 +682,13 @@ class SaveRoleAction(Action):
         return OperationResult(success=True)
 
     def _get_role(self, request, context):
-        if (context.userrole_id > 0):
+        if context.userrole_id > 0:
             try:
                 user_role = models.UserRole.objects.get(id=context.userrole_id)
             except models.UserRole.DoesNotExist:
-                return OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+                return OperationResult(
+                    success=False,
+                    message=u'Роль с указанным идентификатором не найдена')
         else:
             user_role = models.UserRole()
         # только два скоупа в питоне ))
@@ -638,11 +702,14 @@ class SaveRoleAction(Action):
         result = []
         for perm in context.perms:
             code = perm['permission_code']
-            q = models.RolePermission.objects.filter(role=context.user_role, permission_code=code).all()
+            q = models.RolePermission.objects.filter(
+                role=context.user_role, permission_code=code).all()
             if len(q) > 0:
                 perm_obj = q[0]
             else:
-                perm_obj = models.RolePermission(role=context.user_role, permission_code=perm['permission_code'])
+                perm_obj = models.RolePermission(
+                    role=context.user_role,
+                    permission_code=perm['permission_code'])
             perm_obj.disabled = perm['disabled']
 
             result.append(perm_obj)
@@ -679,19 +746,27 @@ class DeleteRoleAction(Action):
         try:
             user_role = models.UserRole.objects.get(id=context.userrole_id)
         except models.UserRole.DoesNotExist:
-            return OperationResult(success=False, message=u'Роль с указанным идентификатором не найдена')
+            return OperationResult(
+                success=False,
+                message=u'Роль с указанным идентификатором не найдена')
 
         if len(helpers.get_assigned_users_query(user_role)) > 0:
-            return OperationResult(success=False,
-                                   message=u'К данной роли привязаны пользователи. Удалять такую роль нельзя')
+            return OperationResult(
+                success=False,
+                message=u'К данной роли привязаны пользователи. '
+                        u'Удалять такую роль нельзя')
 
         try:
             if not safe_delete(user_role):
                 # FIXME: return в try - это зло
-                return OperationResult(success=False,
-                                       message=u'Не удалось удалить роль пользователя.<br>На эту запись есть ссылки в базе данных.')
+                return OperationResult(
+                    success=False,
+                    message=u'Не удалось удалить роль пользователя.'
+                            u'<br>На эту запись есть ссылки в базе данных.')
         except:
-            msg = u'Не удалось удалить роль пользователя. Подробности в логах системы.'
+            msg = (
+                u'Не удалось удалить роль пользователя. '
+                u'Подробности в логах системы.')
             logging.exception(msg)
             return OperationResult(success=False,
                                    message=msg)
@@ -700,9 +775,8 @@ class DeleteRoleAction(Action):
 
 
 class AssignUsers(Action):
-    '''
-    Сопоставление пользователей роли
-    '''
+    """Сопоставление пользователей роли."""
+
     url = '/assign-users-to-role'
 
     def context_declaration(self):
@@ -711,9 +785,9 @@ class AssignUsers(Action):
             ACD(name='ids', type=str, required=True),
         ]
 
-
     def run(self, request, context):
-        # получаем список пользователей, которые уже были ассоциированы с ролью
+        # получаем список пользователей,
+        # которые уже были ассоциированы с ролью
 
         try:
 
@@ -736,44 +810,48 @@ class AssignUsers(Action):
 
 
 class DeleteAssignedUser(Action):
-    '''
-    Удаление связанного с ролью пользователя
-    '''
+    """Удаление связанного с ролью пользователя."""
+
     url = '/delete-assigned-user'
     need_check_permission = True
     verbose_name = u'Удаление пользователя роли'
 
     def context_declaration(self):
         return [
-            ACD(name='assigneduser_id', type=ActionContext.ValuesList(), required=True)
+            ACD(name='assigneduser_id',
+                type=ActionContext.ValuesList(), required=True)
         ]
 
     def run(self, request, context):
         for assigneduser_id in context.assigneduser_id:
             try:
-                assigned_user = models.AssignedRole.objects.get(id=assigneduser_id)
+                assigned_user = models.AssignedRole.objects.get(
+                    id=assigneduser_id)
             except models.AssignedRole.DoesNotExist:
-                return OperationResult(success=False,
-                                       message=u'Не удалось удалить запись. Указанный пользователь не найден.')
+                return OperationResult(
+                    success=False,
+                    message=u'Не удалось удалить запись. '
+                            u'Указанный пользователь не найден.')
 
             try:
                 api.remove_user_role(assigned_user.user, assigned_user.role)
             except Exception:
-                msg = u'Не удалось удалить запись. Подробности в логах системы.'
+                msg = (
+                    u'Не удалось удалить запись. Подробности в логах системы.')
                 logging.exception(msg)
                 return OperationResult.by_message(msg)
 
         return OperationResult()
 
 
-#===============================================================================
+# =============================================================================
 # UI
-#===============================================================================
-
+# =============================================================================
 class AssignedUsersWindow(windows.ExtWindow):
-    '''
-    Окно просмотра пользователей, которые включены в данную роль
-    '''
+    """
+    Окно просмотра пользователей, которые включены в данную роль.
+
+    """
 
     def __init__(self, *args, **kwargs):
         super(AssignedUsersWindow, self).__init__(*args, **kwargs)
@@ -783,10 +861,12 @@ class AssignedUsersWindow(windows.ExtWindow):
         self.modal = True
 
         self.layout = 'border'
-        self.panel_north = panels.ExtForm(layout='form', region='north', height=40, label_width=50,
-                                          style={'padding': '5px'})
-        self.panel_center = panels.ExtPanel(layout='fit', region='center', body_cls='x-window-mc',
-                                            title=u'Пользователи с данной ролью', style={'padding': '5px'})
+        self.panel_north = panels.ExtForm(
+            layout='form', region='north', height=40, label_width=50,
+            style={'padding': '5px'})
+        self.panel_center = panels.ExtPanel(
+            layout='fit', region='center', body_cls='x-window-mc',
+            title=u'Пользователи с данной ролью', style={'padding': '5px'})
 
         self.items.extend([
             self.panel_north,
@@ -794,19 +874,26 @@ class AssignedUsersWindow(windows.ExtWindow):
         ])
 
         # настройка северной панели
-        self.field_role_name = fields.ExtStringField(name='role-name', label=u'Роль', anchor='100%', read_only=True)
+        self.field_role_name = fields.ExtStringField(
+            name='role-name', label=u'Роль', anchor='100%', read_only=True)
         self.panel_north.items.append(self.field_role_name)
 
         # настройка центральной панели
         self.grid_users = panels.ExtObjectGrid()
         self.grid_users.allow_paging = False
-        self.grid_users.add_column(header=u'Логин', data_index='user_login', width=100)
-        self.grid_users.add_column(header=u'Фамилия', data_index='user_last_name', width=200)
-        self.grid_users.add_column(header=u'Имя', data_index='user_first_name', width=200)
-        self.grid_users.add_column(header=u'E-mail', data_index='user_email', width=200)
+        self.grid_users.add_column(
+            header=u'Логин', data_index='user_login', width=100)
+        self.grid_users.add_column(
+            header=u'Фамилия', data_index='user_last_name', width=200)
+        self.grid_users.add_column(
+            header=u'Имя', data_index='user_first_name', width=200)
+        self.grid_users.add_column(
+            header=u'E-mail', data_index='user_email', width=200)
         self.grid_users.action_data = RoleAssignedUsersDataAction
 
-        search_text_grid = ExtSearchField(empty_text=u'Поиск', component_for_search=self.grid_users)
+        search_text_grid = ExtSearchField(
+            empty_text=u'Поиск',
+            component_for_search=self.grid_users)
         self.grid_users.top_bar.add_fill()
         self.grid_users.top_bar.items.append(search_text_grid)
 
@@ -816,19 +903,24 @@ class AssignedUsersWindow(windows.ExtWindow):
 
         self.grid_users.action_delete = DeleteAssignedUser
         self.grid_users.top_bar.button_new.text = u'Добавить пользователей'
-        self.grid_users.context_menu_grid.menuitem_new.text = u'Добавить пользователей'
-        self.grid_users.context_menu_row.menuitem_new.text = u'Добавить пользователей'
-        self.grid_users.context_menu_row.menuitem_delete.text = u'Удалить пользователя из роли'
+        self.grid_users.context_menu_grid.menuitem_new.text = (
+            u'Добавить пользователей')
+        self.grid_users.context_menu_row.menuitem_new.text = (
+            u'Добавить пользователей')
+        self.grid_users.context_menu_row.menuitem_delete.text = (
+            u'Удалить пользователя из роли')
         self.grid_users.row_id_name = 'assigneduser_id'
         self.panel_center.items.append(self.grid_users)
 
-        self.buttons.append(controls.ExtButton(text=u'Закрыть', handler='closeWindow'))
+        self.buttons.append(
+            controls.ExtButton(text=u'Закрыть', handler='closeWindow'))
 
 
 class SelectPermissionWindow(windows.ExtEditWindow):
-    '''
-    Окно выбора прав доступа для добавления в роль
-    '''
+    """
+    Окно выбора прав доступа для добавления в роль.
+
+    """
 
     def __init__(self, *args, **kwargs):
         super(SelectPermissionWindow, self).__init__(*args, **kwargs)
@@ -842,24 +934,28 @@ class SelectPermissionWindow(windows.ExtEditWindow):
         self.tree.master_column_id = 'name'
         self.tree.nodes = get_all_permission_tree()
         self.items.append(self.tree)
-        self.buttons.append(controls.ExtButton(text=u'Выбрать', handler='''function select(btn, e, baseParams) {
+        self.buttons.append(controls.ExtButton(
+            text=u'Выбрать', handler='''function select(btn, e, baseParams) {
             var tree = Ext.getCmp('%s');
             var records = tree.getChecked();
             win.fireEvent('closed_ok', records);
             win.close(true);
         }''' % self.tree.client_id))
-        self.buttons.append(controls.ExtButton(text=u'Отмена', handler='cancelForm'))
+        self.buttons.append(
+            controls.ExtButton(text=u'Отмена', handler='cancelForm'))
 
 
-#===============================================================================
+# =============================================================================
 # Справочник "Роли пользователей"
-#===============================================================================
+# =============================================================================
 class Roles_DictPack(BaseDictionaryModelActions):
-    '''
+    """
     Справочник "Роли пользователей".
 
     Используется для выбора значений.
-    '''
+
+    """
+
     url = '/roles-dict'
     shortname = 'user-roles-dictpack'
     model = models.UserRole
