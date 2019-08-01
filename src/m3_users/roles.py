@@ -259,7 +259,7 @@ class RolesDataAction(Action):
 
     def context_declaration(self):
         return [
-            ACD(name='filter', type=unicode, required=True, default=''),
+            ACD(name='filter', type=str, required=True, default=''),
             ACD(name='start', type=int, required=True, default=0),
             ACD(name='limit', type=int, required=True, default=25),
         ]
