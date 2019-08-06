@@ -31,6 +31,9 @@ class UserRole(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         app_label = 'm3_users'
         db_table = 'm3_users_role'
@@ -61,6 +64,9 @@ class RolePermission(models.Model):
     disabled = models.BooleanField(default=False, verbose_name=u'Активно')
 
     def __unicode__(self):
+        return self.permission_code
+
+    def __str__(self):
         return self.permission_code
 
     class Meta:
@@ -114,6 +120,9 @@ class AssignedRole(models.Model):
     def __unicode__(self):
         return u'Роль "%s" у %s' % (self.role.name,
                                     self.user.username)
+
+    def __str__(self):
+        return 'Роль "{0}" у {1}'.format(self.role.name, self.user.username)
 
     class Meta:
         app_label = 'm3_users'
