@@ -14,7 +14,8 @@ class UserRole(models.Model):
     name = models.CharField(max_length=200, db_index=True,
                             verbose_name=u'Наименование роли пользователя')
 
-    #: строка, ассоциированная с ролью метароль (определяет интерфейс пользователя).
+    #: строка, ассоциированная с ролью метароль
+    #: (определяет интерфейс пользователя).
     metarole = models.CharField(max_length=100, null=True, blank=True,
                                 verbose_name=u'Метароль')
 
@@ -51,9 +52,10 @@ class RolePermission(models.Model):
     permission_code = models.CharField(max_length=200, db_index=True,
                                        verbose_name=u'Код права доступа')
 
-    #: текстовое поле, человеческое наименование разрешения с наименованиями модулей,
-    #:  разделенных через запятые.
-    verbose_permission_name = models.TextField(verbose_name=u'Описание права доступа')
+    #: текстовое поле, человеческое наименование разрешения
+    #: с наименованиями модулей, разделенных через запятые.
+    verbose_permission_name = models.TextField(
+        verbose_name=u'Описание права доступа')
 
     #: булево, активность роли
     disabled = models.BooleanField(default=False, verbose_name=u'Активно')
